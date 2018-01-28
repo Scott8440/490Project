@@ -1,1 +1,32 @@
 Project Plan:
+  1. Parse Python Files
+  2. Incremental analysis addition
+  3. Print out report
+  4. GUI
+  5. Open-Source Analysis
+
+============= Class Structure ==============
+
+Variable: // Is this even necessary?
+  * Name
+  * owningBlock (?)
+
+CodeBlock:
+  * Variables[] //Variables that are declared in this block
+  * Lines[]
+  * childrenBlocks[]
+
+  >>>> Children Classes:
+	> If Block
+	> While Block
+	> For Block
+
+Function:
+  * Name
+  * Arguments[]
+  
+Class:
+  * name
+  * parentClasses[] (?)
+  * memberVariables[]
+  * memberFunctions[]
