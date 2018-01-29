@@ -9,3 +9,5 @@ class CodeClass:
     def addLine(self, line):
         self.lines.append(line)
 
+    def addFunction(self, function):
+        self.memberFunctions.append(function)

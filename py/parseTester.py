@@ -14,9 +14,15 @@ codeFile.parseFile(path)
 print("=== CLASSES:")
 for i in codeFile.classes:
     print(i)
+    for j in i.lines:
+        print(j.rstrip())
+    for j in i.memberFunctions:
+        print(j)
 
 print("=== FUNCTIONS:")
 for i in codeFile.functions:
     print(i)
+    for j in i.lines:
+        print(j.rstrip())
 
 
