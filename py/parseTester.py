@@ -1,15 +1,13 @@
 from CodeParser import CodeParser
-from CodeFile import CodeFile
 import os.path
 
 
-parser = CodeParser()
-codeFile = CodeFile()
-
 parentDirectory = os.path.split(os.path.dirname(__file__))[0]
 path = os.path.join(parentDirectory, '..', 'example.py')
-codeFile.parseFile(path)
 
+parser = CodeParser(path)
+
+codeFile = parser.parseFile()
 
 print("=== CLASSES:")
 for i in codeFile.classes:

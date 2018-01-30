@@ -1,30 +1,71 @@
 from CodeClass import CodeClass
 from CodeFunction import CodeFunction
+from CodeFile import CodeFile
 
 
 class CodeParser:
     
-    def __init__(self):
-        pass
+    def __init__(self, filename):
+        with open(filename, 'r') as f:
+            self.lines = f.readlines()
+            self.numLines = len(self.lines)
+        self.currentLineNum = 0
+        self.currentLine = self.lines[0]
 
-    def parseClass(self, lines):
+    def nextLine(self):
+        self.currentLineNum += 1
+        self.currentLine = self.lines[self.currentLineNum]
+        return self.currentLine
+
+    def peekLine(self):
+        if notEndOfFile:
+            return self.lines[currentLineNum + 1]
+        return None
+
+    def notEndOfFile(self):
+        return self.currentLineNum < self.numLines
+
+    def notLastLine(self):
+        return self.currentLineNum < self.numLines - 1
+
+    def parseFile(self):
+        codeFile = CodeFile()
+        line = self.currentLine 
+        while self.notEndOfFile():
+            if 'class' in line.split(' '):
+                print("****Parsing CodeClass: {}".format(line.rstrip()))
+                classLines = self.packageBlock()
+                codeFile.classes.append(self.parseClass(classLines))
+            elif 'def' in line.split(' '):
+                print("****Parsing CodeFunction: {}".format(line.rstrip()))
+                functionLines = self.packageBlock()
+                codeFile.functions.append(self.parseFunction(functionLines))
+            else:
+                codeFile.addLine(line)
+            if self.notLastLine():
+                line = self.nextLine()
+            else:
+                break
+        return codeFile
+
+    def parseClass(self):
         print("Class Length: {}".format(len(lines)))
         newClass = CodeClass()
-        lineNum = 0
-        line = lines[lineNum]
-        while lineNum < len(lines):
+        line = self.currentLine
+        while self.notEndOfFile():
             line = line.strip()
             if 'def' in line.split(' '):
                 print("Parsing Function: '{}'".format(line.rstrip()))
-                funcLines, funcLength = self.packageBlock(lines, lineNum)
+                funcLines = self.packageBlock()
                 print("FUNCLINES: {}".format(funcLines))
-                lineNum += funcLength
                 func = self.parseFunction(funcLines)
                 newClass.addFunction(func)
             else:
                 newClass.addLine(line)
-                lineNum += 1
-                line = lines[lineNum]
+                if self.notLastLine():
+                    line = self.nextLine()
+                else:
+                    break
         return newClass
 
     def parseFunction(self, lines):
@@ -55,33 +96,32 @@ class CodeParser:
     def shouldIgnoreLine(self, line):
         return line.isspace() or len(line) == 0
 
-    def packageBlock(self, lines, lineNumber):
+    def packageBlock(self):
         # Keep reading until indentation is less than or equal to where it began
         # Assumes you can't mix tabs or spaces. Is this correct?
         blockLines = []
 
-        line = lines[lineNumber]
+        #line = lines[lineNumber]
+        line = self.currentLine
         blockLines.append(line)
         beginningIndentation = self.countIndentation(line) 
         
-        lineNumber += 1
-        line = lines[lineNumber]
+        line = self.nextLine()
         while self.shouldIgnoreLine(line):
-            lineNumber += 1
-            line = lines[lineNumber] 
+            line = self.nextLine()
         indentation = self.countIndentation(line)
-        while lineNumber < len(lines) and indentation > beginningIndentation:
+        while self.notEndOfFile() and indentation > beginningIndentation:
             if self.shouldIgnoreLine(line):
-                lineNumber += 1
-                if lineNumber == len(lines):
+                if self.notLastLine():
+                    line = self.nextLine()
+                    indentation = self.countIndentation(line)
+                    continue
+                else:
                     break
-                line = lines[lineNumber]
-                indentation = self.countIndentation(line)
-                continue
             blockLines.append(line)
-            lineNumber += 1
-            if lineNumber == len(lines):
+            if self.notLastLine():
+                line = self.nextLine()
+                indentation = self.countIndentation(line) 
+            else:
                 break
-            line = lines[lineNumber]
-            indentation = self.countIndentation(line) 
-        return blockLines, lineNumber
+        return blockLines

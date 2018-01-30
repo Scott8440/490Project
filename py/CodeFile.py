@@ -1,5 +1,3 @@
-from CodeParser import CodeParser
-
 class CodeFile:
 
     def __init__(self):
@@ -7,7 +5,10 @@ class CodeFile:
         self.functions = []
         self.classes = []
         self.blocks = []
+        self.lines = []
 
+    def addLine(self, line):
+        self.lines.append(line)
     def parseFile(self, filename):
        codeParser = CodeParser()
        with open(filename) as f:
