@@ -22,7 +22,7 @@ for i in codeFile.classes:
 print("=== FUNCTIONS:")
 for i in codeFile.functions:
     print(i)
-    for j in i.lines:
-        print(j.rstrip())
+    print("Name: '{}'".format(i.name))
+    print("Args: {}".format(i.arguments))
 
 

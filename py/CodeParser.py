@@ -3,7 +3,7 @@ from CodeFunction import CodeFunction
 
 
 class CodeParser:
-
+    
     def __init__(self):
         pass
 
@@ -12,14 +12,13 @@ class CodeParser:
         newClass = CodeClass()
         lineNum = 0
         line = lines[lineNum]
-        print(lines)
         while lineNum < len(lines):
             line = line.strip()
-            #print(line)
             if 'def' in line.split(' '):
                 print("Parsing Function: '{}'".format(line.rstrip()))
-                funcLines = self.packageBlock(lines, lineNum)
-                lineNum += len(funcLines)
+                funcLines, funcLength = self.packageBlock(lines, lineNum)
+                print("FUNCLINES: {}".format(funcLines))
+                lineNum += funcLength
                 func = self.parseFunction(funcLines)
                 newClass.addFunction(func)
             else:
@@ -29,11 +28,22 @@ class CodeParser:
         return newClass
 
     def parseFunction(self, lines):
-        print("Function Length: {}".format(len(lines)))
-        newFunction = CodeFunction()
-        for line in lines:
-            newFunction.addLine(line)
-        return newFunction
+        firstLine = lines[0]
+        name = self.parseFunctionName(firstLine)
+        arguments = self.parseFunctionArgs(firstLine)
+        #print("Name: {}".format(name))
+        #print("Args: {}".format(arguments))
+        return CodeFunction(name, arguments, lines)
+
+    def parseFunctionName(self, line):
+        nameStart = line.find('def ') + 4
+        nameEnd = line.find('(')
+        return line[nameStart: nameEnd]
+
+    def parseFunctionArgs(self, line):
+        argString = line[line.find('(')+1: line.find(':')-1]
+        args = argString.split(',')
+        return args
 
     def countIndentation(self, line):
         #print("First Character: '{}'".format(line[0]))
@@ -51,28 +61,27 @@ class CodeParser:
         blockLines = []
 
         line = lines[lineNumber]
+        blockLines.append(line)
         beginningIndentation = self.countIndentation(line) 
         
         lineNumber += 1
         line = lines[lineNumber]
         while self.shouldIgnoreLine(line):
-            #print("ignored line")
             lineNumber += 1
             line = lines[lineNumber] 
         indentation = self.countIndentation(line)
-        #print("First indent: {}".format(beginningIndentation))
-        #print("first line: '{}'".format(line.rstrip()))
-        #print("indent: {}".format(indentation))
-        while line and indentation > beginningIndentation:
+        while lineNumber < len(lines) and indentation > beginningIndentation:
             if self.shouldIgnoreLine(line):
                 lineNumber += 1
+                if lineNumber == len(lines):
+                    break
                 line = lines[lineNumber]
                 indentation = self.countIndentation(line)
                 continue
-
             blockLines.append(line)
             lineNumber += 1
+            if lineNumber == len(lines):
+                break
             line = lines[lineNumber]
             indentation = self.countIndentation(line) 
-            #print("indent: {}".format(indentation))
         return blockLines, lineNumber

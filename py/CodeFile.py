@@ -24,6 +24,6 @@ class CodeFile:
                     functionLines, lineNum = codeParser.packageBlock(lines, lineNum)
                     self.functions.append(codeParser.parseFunction(functionLines))
                 else:
-                    print("Random Line: '{}'".format(line.rstrip()))
+                    #print("Random Line: '{}'".format(line.rstrip()))
                     lineNum += 1
                 line = f.readline()

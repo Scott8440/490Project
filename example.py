@@ -19,3 +19,6 @@ x = 5
 y = x * 2
 print(y)
 # more comments
+
+def longArgs(arg1, arg2, arg3, arg4):
+    print("{}".format(arg1 + arg2 + arg3 + arg4))
