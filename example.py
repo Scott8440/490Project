@@ -11,7 +11,7 @@ class exClass:
         pass
 
     def doThing(self, foo):
-        print(foo)
+        print(foo + "")
         
 print('random script things')
 # Comments in this block

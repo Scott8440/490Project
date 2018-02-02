@@ -16,11 +16,15 @@ for i in codeFile.classes:
         print(j.rstrip())
     for j in i.memberFunctions:
         print(j)
+        for k in j.lines:
+            print(k.rstrip())
 
 print("=== FUNCTIONS:")
 for i in codeFile.functions:
     print(i)
     print("Name: '{}'".format(i.name))
     print("Args: {}".format(i.arguments))
+    for j in i.lines:
+        print(j.rstrip())
 
 

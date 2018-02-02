@@ -1,13 +1,7 @@
 class CodeClass:
 
-    def __init__(self):
-        self.name = ''
+    def __init__(self, name, classFunctions, classLines):
+        self.name = name 
         self.memberVariables = []
-        self.memberFunctions = []
-        self.lines = []
-
-    def addLine(self, line):
-        self.lines.append(line)
-
-    def addFunction(self, function):
-        self.memberFunctions.append(function)
+        self.memberFunctions = classFunctions
+        self.lines = classLines
