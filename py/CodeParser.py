@@ -48,12 +48,17 @@ class CodeParser:
                 codeFile.functions.append(self.parseFunction(functionLines))
                 self.stepBack()
             else:
-                codeFile.addLine(line)
+                block = self.parseRegularBlock()
+            #else:
+            #    codeFile.addLine(line)
             if self.notLastLine():
                 line = self.nextLine()
             else:
                 break
         return codeFile
+    
+    def parseRegularBlock(self):
+
 
     def parseClass(self, lines):
         lineNum = 0
@@ -68,8 +73,6 @@ class CodeParser:
                 print("Parsing Function: '{}'".format(line.rstrip()))
                 funcLines, lineNum = self.packageBlockLines(lines, lineNum)
                 line = lines[lineNum]
-                print("FUNCLINES: {}".format(funcLines))
-                print("LineAfter: {}".format(line.rstrip()))
                 func = self.parseFunction(funcLines)
                 classFunctions.append(func)
                 if lineNum == len(lines)-1:
@@ -81,7 +84,6 @@ class CodeParser:
                     line = lines[lineNum]
                 else:
                     break
-        print("Done parsing class")
         return CodeClass(className, classFunctions, classLines)
 
     def parseClassName(self, line):

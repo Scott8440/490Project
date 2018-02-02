@@ -13,18 +13,18 @@ print("=== CLASSES:")
 for i in codeFile.classes:
     print(i)
     for j in i.lines:
-        print(j.rstrip())
+        print("  {}".format(j.rstrip()))
     for j in i.memberFunctions:
-        print(j)
+        print("  {}".format(j))
         for k in j.lines:
-            print(k.rstrip())
+            print("    {}".format(k.rstrip()))
 
 print("=== FUNCTIONS:")
 for i in codeFile.functions:
     print(i)
-    print("Name: '{}'".format(i.name))
-    print("Args: {}".format(i.arguments))
+    print("  Name: '{}'".format(i.name))
+    print("  Args: {}".format(i.arguments))
     for j in i.lines:
-        print(j.rstrip())
+        print("  {}".format(j.rstrip()))
 
 
