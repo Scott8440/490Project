@@ -96,9 +96,8 @@ class CodeParser:
 
 
     def parseFunction(self, lines):
-        firstLine = lines[0]
-        name = self.parseFunctionName(firstLine)
-        arguments = self.parseFunctionArgs(firstLine)
+        name = self.parseFunctionName(lines[0])
+        arguments = self.parseFunctionArgs(lines)
         #print("Name: {}".format(name))
         #print("Args: {}".format(arguments))
         return CodeFunction(name, arguments, lines)
@@ -108,9 +107,16 @@ class CodeParser:
         nameEnd = line.find('(')
         return line[nameStart: nameEnd]
 
-    def parseFunctionArgs(self, line):
-        argString = line[line.find('(')+1: line.find(':')-1]
+    def parseFunctionArgs(self, lines):
+        args = []
+        i = 0
+        while ')' not in lines[i]:
+            i += 1
+        firstLine = "".join(lines[0:i+1])
+        argString = firstLine[firstLine.find('(')+1: firstLine.find(':')-1]
         args = argString.split(',')
+        for i in range(len(args)):
+            args[i] = args[i].strip()
         return args
 
     def countIndentation(self, line):
