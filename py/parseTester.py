@@ -27,4 +27,7 @@ for i in codeFile.functions:
     for j in i.lines:
         print("  {}".format(j.rstrip()))
 
-
+print("=== BLOCKS:")
+for i in codeFile.blocks:
+    print(i)
+    print("====")

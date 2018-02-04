@@ -18,8 +18,8 @@ class CodeParser:
         return self.currentLine
 
     def peekLine(self):
-        if notEndOfFile:
-            return self.lines[currentLineNum + 1]
+        if self.notLastLine():
+            return self.lines[self.currentLineNum + 1]
         return None
 
     def stepBack(self):
@@ -41,16 +41,19 @@ class CodeParser:
                 print("****Parsing CodeClass: {}".format(line.rstrip()))
                 classLines = self.packageBlock()
                 codeFile.classes.append(self.parseClass(classLines))
-                self.stepBack()
+                if self.notLastLine():
+                    self.stepBack()
             elif 'def' in line.split(' '):
                 print("****Parsing CodeFunction: {}".format(line.rstrip()))
                 functionLines = self.packageBlock()
                 codeFile.functions.append(self.parseFunction(functionLines))
-                self.stepBack()
+                if self.notLastLine():
+                    self.stepBack()
             else:
                 block = self.parseRegularBlock()
-            #else:
-            #    codeFile.addLine(line)
+                codeFile.blocks.append(block)
+                if self.notLastLine():
+                    self.stepBack()
             if self.notLastLine():
                 line = self.nextLine()
             else:
@@ -58,6 +61,9 @@ class CodeParser:
         return codeFile
     
     def parseRegularBlock(self):
+        print("Parsing Regular Block")
+        blockLines = self.packageBlock(minDifference=0, stopOnNewBlock=True) 
+        return blockLines
 
 
     def parseClass(self, lines):
@@ -100,8 +106,6 @@ class CodeParser:
     def parseFunction(self, lines):
         name = self.parseFunctionName(lines[0])
         arguments = self.parseFunctionArgs(lines)
-        #print("Name: {}".format(name))
-        #print("Args: {}".format(arguments))
         return CodeFunction(name, arguments, lines)
 
     def parseFunctionName(self, line):
@@ -122,7 +126,6 @@ class CodeParser:
         return args
 
     def countIndentation(self, line):
-        #print("First Character: '{}'".format(line[0]))
         if line[0].isspace():
             return len(line) - len(line.lstrip(line[0]))
         else:
@@ -131,7 +134,7 @@ class CodeParser:
     def shouldIgnoreLine(self, line):
         return line.isspace() or len(line) == 0
 
-    def packageBlock(self):
+    def packageBlock(self, minDifference=1, stopOnNewBlock=False):
         # Keep reading until indentation is less than or equal to where it began
         # Assumes you can't mix tabs or spaces. Is this correct?
         blockLines = []
@@ -140,11 +143,12 @@ class CodeParser:
         blockLines.append(line)
         beginningIndentation = self.countIndentation(line) 
         
-        line = self.nextLine()
+        if self.notLastLine():
+            line = self.nextLine()
         while self.shouldIgnoreLine(line):
             line = self.nextLine()
         indentation = self.countIndentation(line)
-        while self.notEndOfFile() and indentation > beginningIndentation:
+        while not self.endOfBlock(indentation, beginningIndentation, minDifference, line, stopOnNewBlock):
             if self.shouldIgnoreLine(line):
                 if self.notLastLine():
                     line = self.nextLine()
@@ -160,7 +164,19 @@ class CodeParser:
                 break
         return blockLines
 
-    def packageBlockLines(self, lines, lineNum):
+    def endOfBlock(self, indentation, beginningIndentation, minDifference, line, stopOnNewBlock=False):
+        if stopOnNewBlock:
+            if self.lineStartsBlock(line):
+                return True
+        return not(self.notEndOfFile() and indentation >= beginningIndentation + minDifference)
+
+    def lineStartsBlock(self, line):
+        blockWords = ['def', 'class']
+        if line:
+            return any(word in line for word in blockWords)
+        return False
+
+    def packageBlockLines(self, lines, lineNum, minDifference=1):
         blockLines = []
 
         line = lines[lineNum]
@@ -175,7 +191,7 @@ class CodeParser:
                 return blockLines, lineNum
             line = lines[lineNum] 
         indentation = self.countIndentation(line)
-        while lineNum < len(lines) and indentation > beginningIndentation:
+        while lineNum < len(lines) and indentation >= beginningIndentation+minDifference:
             if self.shouldIgnoreLine(line):
                 if lineNum < len(lines) - 1:
                     lineNum += 1
