@@ -1,6 +1,7 @@
 from CodeClass import CodeClass
 from CodeFunction import CodeFunction
 from CodeFile import CodeFile
+from CodeBlock import CodeBlock
 
 
 class CodeParser:
@@ -37,13 +38,14 @@ class CodeParser:
         codeFile = CodeFile()
         line = self.currentLine 
         while self.notEndOfFile():
-            if 'class' in line.split(' '):
+            if 'class' == line.split(' ')[0]:
                 print("****Parsing CodeClass: {}".format(line.rstrip()))
                 classLines = self.packageBlock()
+                print(classLines)
                 codeFile.classes.append(self.parseClass(classLines))
                 if self.notLastLine():
                     self.stepBack()
-            elif 'def' in line.split(' '):
+            elif 'def' == line.split(' ')[0]:
                 print("****Parsing CodeFunction: {}".format(line.rstrip()))
                 functionLines = self.packageBlock()
                 codeFile.functions.append(self.parseFunction(functionLines))
@@ -63,8 +65,10 @@ class CodeParser:
     def parseRegularBlock(self):
         print("Parsing Regular Block")
         blockLines = self.packageBlock(minDifference=0, stopOnNewBlock=True) 
-        return blockLines
-
+        block = CodeBlock()
+        for line in blockLines:
+            block.addLine(line)
+        return block
 
     def parseClass(self, lines):
         lineNum = 0
@@ -78,6 +82,7 @@ class CodeParser:
             if 'def' in line.split(' '):
                 print("Parsing Function: '{}'".format(line.rstrip()))
                 funcLines, lineNum = self.packageBlockLines(lines, lineNum)
+                print("funclines: {}".format(funcLines))
                 line = lines[lineNum]
                 func = self.parseFunction(funcLines)
                 classFunctions.append(func)
@@ -88,8 +93,6 @@ class CodeParser:
                 if lineNum < len(lines) - 1:
                     lineNum += 1
                     line = lines[lineNum]
-                else:
-                    break
         return CodeClass(className, classFunctions, classLines)
 
     def parseClassName(self, line):
@@ -173,7 +176,7 @@ class CodeParser:
     def lineStartsBlock(self, line):
         blockWords = ['def', 'class']
         if line:
-            return any(word in line for word in blockWords)
+            return any(word in line.split(' ')[0] for word in blockWords)
         return False
 
     def packageBlockLines(self, lines, lineNum, minDifference=1):
