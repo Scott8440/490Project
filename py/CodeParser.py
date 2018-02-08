@@ -1,3 +1,4 @@
+import re
 from CodeClass import CodeClass
 from CodeFunction import CodeFunction
 from CodeFile import CodeFile
@@ -35,13 +36,13 @@ class CodeParser:
         return self.currentLineNum < self.numLines - 1
 
     def parseFile(self):
+        #TODO: Remove packageBlock() and just use packageBlockLines()?
         codeFile = CodeFile()
         line = self.currentLine 
         while self.notEndOfFile():
             if 'class' == line.split(' ')[0]:
                 print("****Parsing CodeClass: {}".format(line.rstrip()))
                 classLines = self.packageBlock()
-                print(classLines)
                 codeFile.classes.append(self.parseClass(classLines))
                 if self.notLastLine():
                     self.stepBack()
@@ -52,7 +53,8 @@ class CodeParser:
                 if self.notLastLine():
                     self.stepBack()
             else:
-                block = self.parseRegularBlock()
+                blockLines = self.packageBlock()
+                block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
                 if self.notLastLine():
                     self.stepBack()
@@ -61,16 +63,87 @@ class CodeParser:
             else:
                 break
         return codeFile
-    
-    def parseRegularBlock(self):
+
+    def parseBlock(self, lines):
+        blockType = self.determineBlockType(lines)
+        block = CodeBlock('noType')
+        if (blockType == 'def'):
+            block = self.parseFunction(lines)
+        elif (blockType == 'class'):
+            block = self.parseClass()
+        elif (blockType == 'if'):
+            block = self.parseIfBlock(lines)
+        elif (blockType == 'else'):
+            block = self.parseElseBlock(lines)
+        elif (blockType == 'elif'):
+            block = self.parseElifBlock(lines)
+        elif (blockType == 'for'):
+            block = self.parseForBlock(lines)
+        elif (blockType == 'while'):
+            block = self.parseWhileBlock(lines)
+        elif (blockType == 'try'):
+            block = self.parseTryBlock(lines)
+        elif (blockType == 'except'):
+            block = self.parseExceptBlock(lines)
+        else:
+            block = self.parseRegularBlock(lines)
+        return block
+
+    def determineBlockType(self, lines):
+        firstLine = lines[0].strip().split(' ')
+        blockType = firstLine[0]
+        return blockType
+
+    def parseIfBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'if'
+        return block
+
+    def parseElseBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'else'
+        return block
+
+    def parseElifBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'elif'
+        return block
+
+    def parseForBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'for'
+        return block
+
+    def parseWhileBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'while'
+        return block
+
+    def parseTryBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'try'
+        return block
+
+    def parseExceptBlock(self, lines):
+        block = self.parseRegularBlock(lines)
+        block.blockType = 'except'
+        return block
+
+    def parseRegularBlock(self, lines):
         print("Parsing Regular Block")
-        blockLines = self.packageBlock(minDifference=0, stopOnNewBlock=True) 
         block = CodeBlock()
-        for line in blockLines:
-            block.addLine(line)
+        for lineNum in range(len(lines)):
+            line = lines[lineNum]
+            if lineNum > 0 and self.lineStartsBlock(line):
+                childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
+                childBlock = self.parseBlock(childBlockLines)
+                block.addChildBlock(childBlock)
+            else:
+                block.addLine(line)
         return block
 
     def parseClass(self, lines):
+        #TODO: Add block parsing to make this more general?
         lineNum = 0
         line = lines[lineNum] 
         className = self.parseClassName(line)
@@ -105,11 +178,27 @@ class CodeParser:
             nameEnd = line.find(':')
         return line[nameStart: nameEnd]
 
-
     def parseFunction(self, lines):
         name = self.parseFunctionName(lines[0])
         arguments = self.parseFunctionArgs(lines)
-        return CodeFunction(name, arguments, lines)
+        function = CodeFunction(name, arguments)
+        lineNum = 0
+        while lineNum < len(lines):
+            print(lineNum)
+            line = lines[lineNum]
+            if lineNum > 0 and self.lineStartsBlock(line):
+                print("Old Linenum: {}".format(lineNum))
+                childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
+                print("New Linenum: {}".format(lineNum))
+                childBlock = self.parseBlock(childBlockLines)
+                function.addChildBlock(childBlock)
+                if lineNum == len(lines)-1: #TODO: Could be fixed by fixing packageBlockLines?
+                    break
+            else:
+                print("adding line: {}".format(line.strip()))
+                function.addLine(line)
+                lineNum += 1
+        return function 
 
     def parseFunctionName(self, line):
         nameStart = line.find('def ') + 4
@@ -174,9 +263,14 @@ class CodeParser:
         return not(self.notEndOfFile() and indentation >= beginningIndentation + minDifference)
 
     def lineStartsBlock(self, line):
-        blockWords = ['def', 'class']
+        blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         if line:
-            return any(word in line.split(' ')[0] for word in blockWords)
+            firstWord = line.split()[0]
+            firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
+            for word in blockWords:
+                if firstWord == word:
+                    return True
+            return False
         return False
 
     def packageBlockLines(self, lines, lineNum, minDifference=1):
@@ -196,7 +290,7 @@ class CodeParser:
         indentation = self.countIndentation(line)
         while lineNum < len(lines) and indentation >= beginningIndentation+minDifference:
             if self.shouldIgnoreLine(line):
-                if lineNum < len(lines) - 1:
+                if lineNum < len(lines)-1:
                     lineNum += 1
                     line = lines[lineNum]
                     indentation = self.countIndentation(line)
@@ -204,10 +298,12 @@ class CodeParser:
                 else:
                     break
             blockLines.append(line)
-            if lineNum < len(lines) - 1:
+            if lineNum < len(lines)-1:
                 lineNum += 1
                 line = lines[lineNum] 
                 indentation = self.countIndentation(line) 
             else:
                 break
+        #TODO: Add a thing here to make it go past the last line if it ends on the last line?
         return blockLines, lineNum
+

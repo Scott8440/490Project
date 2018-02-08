@@ -26,8 +26,13 @@ for i in codeFile.functions:
     print("  Args: {}".format(i.arguments))
     for j in i.lines:
         print("  {}".format(j.rstrip()))
+    for j in i.blocks:
+        print("  {}".format(j))
 
 print("=== BLOCKS:")
 for i in codeFile.blocks:
     print(i)
+    print(i.blockType)
+    for j in i.childrenBlocks:
+        print("  {}".format(j))
     print("====")
