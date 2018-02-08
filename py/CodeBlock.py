@@ -5,6 +5,7 @@ class CodeBlock:
         self.variables = []
         self.lines = []
         self.childrenBlocks = []
+        self.condition = None
 
     def addLine(self, line):
         self.lines.append(line)

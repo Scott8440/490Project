@@ -95,7 +95,7 @@ class CodeParser:
         return blockType
 
     def parseIfBlock(self, lines):
-        block = self.parseRegularBlock(lines)
+        block = self.parseRegularBlock(lines, hasCondition=True)
         block.blockType = 'if'
         return block
 
@@ -105,17 +105,17 @@ class CodeParser:
         return block
 
     def parseElifBlock(self, lines):
-        block = self.parseRegularBlock(lines)
+        block = self.parseRegularBlock(lines, hasCondition=True)
         block.blockType = 'elif'
         return block
 
     def parseForBlock(self, lines):
-        block = self.parseRegularBlock(lines)
+        block = self.parseRegularBlock(lines, hasCondition=True)
         block.blockType = 'for'
         return block
 
     def parseWhileBlock(self, lines):
-        block = self.parseRegularBlock(lines)
+        block = self.parseRegularBlock(lines, hasCondition=True)
         block.blockType = 'while'
         return block
 
@@ -129,10 +129,14 @@ class CodeParser:
         block.blockType = 'except'
         return block
 
-    def parseRegularBlock(self, lines):
+    def parseRegularBlock(self, lines, hasCondition=False):
         print("Parsing Regular Block")
         block = CodeBlock()
-        for lineNum in range(len(lines)):
+        lineNum = 0
+        if hasCondition:
+            condition, lineNum = self.parseCondition(lines)
+            block.condition = condition
+        while lineNum < len(lines):
             line = lines[lineNum]
             if lineNum > 0 and self.lineStartsBlock(line):
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
@@ -140,7 +144,20 @@ class CodeParser:
                 block.addChildBlock(childBlock)
             else:
                 block.addLine(line)
+                lineNum += 1
         return block
+
+    def parseCondition(self, lines):
+        i = 0
+        while ':' not in lines[i]:
+            i += 1
+        firstLine = "".join(lines[0:i+1])
+        firstLine = ' '.join(firstLine.split())
+        condition = firstLine[firstLine.find(' ')+1: firstLine.find(':')]
+        condition = condition.replace('(', '').replace(')', '')
+        print("CONDITION: {}".format(condition))
+        return condition, i+1
+
 
     def parseClass(self, lines):
         #TODO: Add block parsing to make this more general?

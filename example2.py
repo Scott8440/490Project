@@ -1,7 +1,9 @@
-if True:
+if (True and False or True
+    and False):
     print("if statement")
     x = 2
-    if False:
+    if (False or True or False
+        or False or False):
         print("if inside an if")
         y = 2
 
