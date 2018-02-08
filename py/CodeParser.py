@@ -162,27 +162,24 @@ class CodeParser:
     def parseClass(self, lines):
         #TODO: Add block parsing to make this more general?
         lineNum = 0
-        line = lines[lineNum] 
+        line = lines[lineNum]
         className = self.parseClassName(line)
         classFunctions = []
         classLines = []
         print("ClassName: {}".format(className))
         while lineNum < len(lines):
+            line = lines[lineNum]
             line = line.strip()
             if 'def' in line.split(' '):
                 print("Parsing Function: '{}'".format(line.rstrip()))
                 funcLines, lineNum = self.packageBlockLines(lines, lineNum)
                 print("funclines: {}".format(funcLines))
-                line = lines[lineNum]
                 func = self.parseFunction(funcLines)
                 classFunctions.append(func)
-                if lineNum == len(lines)-1:
-                    break
             else:
                 classLines.append(line)
                 if lineNum < len(lines) - 1:
                     lineNum += 1
-                    line = lines[lineNum]
         return CodeClass(className, classFunctions, classLines)
 
     def parseClassName(self, line):
@@ -209,8 +206,6 @@ class CodeParser:
                 print("New Linenum: {}".format(lineNum))
                 childBlock = self.parseBlock(childBlockLines)
                 function.addChildBlock(childBlock)
-                if lineNum == len(lines)-1: #TODO: Could be fixed by fixing packageBlockLines?
-                    break
             else:
                 print("adding line: {}".format(line.strip()))
                 function.addLine(line)
@@ -243,7 +238,7 @@ class CodeParser:
     def shouldIgnoreLine(self, line):
         return line.isspace() or len(line) == 0
 
-    def packageBlock(self, minDifference=1, stopOnNewBlock=False):
+    def packageBlock(self, minDifference=1):
         # Keep reading until indentation is less than or equal to where it began
         # Assumes you can't mix tabs or spaces. Is this correct?
         blockLines = []
@@ -257,7 +252,7 @@ class CodeParser:
         while self.shouldIgnoreLine(line):
             line = self.nextLine()
         indentation = self.countIndentation(line)
-        while not self.endOfBlock(indentation, beginningIndentation, minDifference, line, stopOnNewBlock):
+        while not self.endOfBlock(indentation, beginningIndentation, minDifference, line):
             if self.shouldIgnoreLine(line):
                 if self.notLastLine():
                     line = self.nextLine()
@@ -273,10 +268,7 @@ class CodeParser:
                 break
         return blockLines
 
-    def endOfBlock(self, indentation, beginningIndentation, minDifference, line, stopOnNewBlock=False):
-        if stopOnNewBlock:
-            if self.lineStartsBlock(line):
-                return True
+    def endOfBlock(self, indentation, beginningIndentation, minDifference, line):
         return not(self.notEndOfFile() and indentation >= beginningIndentation + minDifference)
 
     def lineStartsBlock(self, line):
@@ -321,6 +313,7 @@ class CodeParser:
                 indentation = self.countIndentation(line) 
             else:
                 break
-        #TODO: Add a thing here to make it go past the last line if it ends on the last line?
+        if lineNum == len(lines)-1:
+            lineNum += 1
         return blockLines, lineNum
 
