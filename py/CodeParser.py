@@ -25,24 +25,17 @@ class CodeParser:
         lineNum = 0
         while self.notEndOfFile(lineNum):
             line = self.lines[lineNum] 
-            print("line {}: '{}'".format(lineNum, line))
-            if self.shouldIgnoreLine(line):
-                lineNum += 1
-                continue
             if 'class' == line.split(' ')[0]:
-                print("class")
                 classLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.classes.append(self.parseClass(classLines))
                 if self.notLastLine(lineNum):
                     lineNum -= 1
             elif 'def' == line.split(' ')[0]:
-                print('def')
                 functionLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.functions.append(self.parseFunction(functionLines))
                 if self.notLastLine(lineNum):
                     lineNum -= 1
             else:
-                print('else {}'.format(line.strip()))
                 blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
@@ -277,6 +270,9 @@ class CodeParser:
         #TODO: Ignore indentation with comment, but don't ignore comment
         return line.isspace() or len(line) == 0
 
+    def shouldIgnoreIndentation(self, line):
+        return self.shouldIgnoreLine(line) or line.strip()[0] == '#' 
+
     def lineStartsBlock(self, line):
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         if line:
@@ -284,7 +280,6 @@ class CodeParser:
             firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
             for word in blockWords:
                 if firstWord == word:
-                    print("NEW {} BLOCK: {}".format(firstWord, line.strip()))
                     return True
             return False
         return False
@@ -303,7 +298,7 @@ class CodeParser:
             line = lines[lineNum] 
         while ((lineNum < numLines and 
                self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference)
-               or self.shouldIgnoreLine(lines[lineNum])):
+               or self.shouldIgnoreIndentation(lines[lineNum])):
             line = lines[lineNum]
             if self.shouldIgnoreLine(line):
                 if lineNum < numLines-1:

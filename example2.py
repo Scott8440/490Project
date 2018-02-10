@@ -44,6 +44,10 @@ def functionWithMixedTabsAndSpaces():
     if(thisLineHas4Spaces): # this line has 4 spaces
         thisLineHasTwoTabs = None
 
+def functionSplitWithComment():
+    x = 2
+# weirdly placed comment
+    y = 3
 
 
 
