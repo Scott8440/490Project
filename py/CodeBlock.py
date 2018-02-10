@@ -22,9 +22,9 @@ class CodeBlock:
     def printSelf(self, level=1):
         indent = "  "*level
         print("{}<{} Block>: {}".format(indent, self.blockType, self.getLength()))
-        print("{}LINES:".format(indent))
-        for j in self.lines:
-            print("{}{}".format(indent, j.strip()))
+        if self.lines:
+            #print("{}LINES:".format(indent))
+            for j in self.lines:
+                print("  {}{}".format(indent, j.strip()))
         for j in self.childrenBlocks:
             j.printSelf(level=level+1)
-        print("====")

@@ -3,7 +3,7 @@ import os.path
 
 
 parentDirectory = os.path.split(os.path.dirname(__file__))[0]
-#path = os.path.join(parentDirectory, '..', 'example.py')
+#path = os.path.join(parentDirectory, '..', 'example2.py')
 path = 'CodeParser.py'
 
 parser = CodeParser(path)
@@ -16,31 +16,12 @@ for i in codeFile.classes:
     for j in i.lines:
         print("  {}".format(j.rstrip()))
     for j in i.memberFunctions:
-        print("  {}".format(j))
-        for k in j.lines:
-            print("    {}".format(k.rstrip()))
-        for k in j.blocks:
-            print("    {}".format(k))
+        j.printSelf(level=2)
 
 print("=== FUNCTIONS:")
 for i in codeFile.functions:
-    print(i)
-    print("  Name: '{}'".format(i.name))
-    print("  Args: {}".format(i.arguments))
-    for j in i.lines:
-        print("  {}".format(j.rstrip()))
-    for j in i.blocks:
-        print("  {}".format(j))
+    i.printSelf(level=0)
 
 print("=== BLOCKS:")
 for i in codeFile.blocks:
-    #print("{}: {}".format(i, i.getLength()))
-    #print(i.blockType)
-    #print("LINES:")
-    #for j in i.lines:
-    #    print(j.strip())
-    #print("BLOCKS:")
-    #for j in i.childrenBlocks:
-    #    print("  {}".format(j))
-    #print("====")
     i.printSelf()
