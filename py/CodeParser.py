@@ -28,24 +28,13 @@ class CodeParser:
             if 'class' == line.split(' ')[0]:
                 classLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.classes.append(self.parseClass(classLines))
-                if self.notLastLine(lineNum):
-                    lineNum -= 1
             elif 'def' == line.split(' ')[0]:
                 functionLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.functions.append(self.parseFunction(functionLines))
-                if self.notLastLine(lineNum):
-                    lineNum -= 1
             else:
                 blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
-                if self.notLastLine(lineNum):
-                    lineNum -= 1
-            if self.notLastLine(lineNum):
-                lineNum += 1
-                line = self.lines[lineNum]
-            else:
-                break
         return codeFile
 
     def parseBlock(self, lines):
