@@ -14,53 +14,36 @@ class CodeParser:
         self.currentLineNum = 0
         self.currentLine = self.lines[0]
 
-    def nextLine(self):
-        self.currentLineNum += 1
-        self.currentLine = self.lines[self.currentLineNum]
-        return self.currentLine
+    def notEndOfFile(self, lineNum):
+        return lineNum < self.numLines
 
-    def peekLine(self):
-        if self.notLastLine():
-            return self.lines[self.currentLineNum + 1]
-        return None
-
-    def stepBack(self):
-        if self.currentLineNum > 0:
-            self.currentLineNum = self.currentLineNum -1
-            self.currentLine = self.lines[self.currentLineNum]
-
-    def notEndOfFile(self):
-        return self.currentLineNum < self.numLines
-
-    def notLastLine(self):
-        return self.currentLineNum < self.numLines - 1
+    def notLastLine(self, lineNum):
+        return lineNum < self.numLines - 1
 
     def parseFile(self):
-        #TODO: Remove packageBlock() and just use packageBlockLines()?
         codeFile = CodeFile()
         line = self.currentLine 
-        while self.notEndOfFile():
+        lineNum = 0
+        while self.notEndOfFile(lineNum):
             if 'class' == line.split(' ')[0]:
-                #TODO: Change to packageBlockLines()
-                classLines = self.packageBlock()
+                classLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.classes.append(self.parseClass(classLines))
-                if self.notLastLine():
-                    self.stepBack()
+                if self.notLastLine(lineNum):
+                    lineNum -= 1
             elif 'def' == line.split(' ')[0]:
-                #TODO: Change to packageBlockLines()
-                functionLines = self.packageBlock()
+                functionLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 codeFile.functions.append(self.parseFunction(functionLines))
-                if self.notLastLine():
-                    self.stepBack()
+                if self.notLastLine(lineNum):
+                    lineNum -= 1
             else:
-                #TODO: Change to packageBlockLines()
-                blockLines = self.packageBlock()
+                blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
-                if self.notLastLine():
-                    self.stepBack()
-            if self.notLastLine():
-                line = self.nextLine()
+                if self.notLastLine(lineNum):
+                    lineNum -= 1
+            if self.notLastLine(lineNum):
+                lineNum += 1
+                line = self.lines[lineNum]
             else:
                 break
         return codeFile
@@ -91,7 +74,7 @@ class CodeParser:
         return block
 
     def determineBlockType(self, lines):
-        firstLine = lines[0].strip().split(' ')
+        firstLine = re.findall(r"[\w']+", lines[0].strip())
         blockType = re.sub("[^a-zA-Z]","", firstLine[0]) #Remove non-alphabet characters
         return blockType
 
@@ -140,14 +123,12 @@ class CodeParser:
             lineNum += 1
         while lineNum < len(lines):
             line = lines[lineNum]
+            #TODO: strip comments, add comments to object
             if self.startsMultilineComment(line):
-                print("Parsing Multiline Comment")
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
-                print("Length: {}".format(commentLength))
                 for i in range(commentLength):
                     block.addLine(lines[lineNum])
                     lineNum += 1
-                print("Next line: {}".format(lines[lineNum].strip()))
             elif lineNum > 0 and self.lineStartsBlock(line):
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
                 childBlock = self.parseBlock(childBlockLines)
@@ -158,8 +139,23 @@ class CodeParser:
         return block
 
     def startsMultilineComment(self, line):
-        return ("'''" in line or '"""' in line)
-
+        position = None
+        quoteChar = None
+        if ("'''" in line):
+            position = line.find("'''")
+            otherQuoteChar = '"'
+        elif ('"""' in line):
+            position = line.find('"""')
+            otherQuoteChar = "'"
+        if position is not None:
+            leftLine = line[:position]
+            print("line: {}".format(line.strip()))
+            print("Left: {}".format(leftLine.strip()))
+            if '#' in leftLine:
+                return False
+            if leftLine.count(otherQuoteChar) % 2 == 1:
+                return False
+            return True
     
     def getMultilineCommentLength(self, lines, lineNum):
         start = lineNum
@@ -189,18 +185,16 @@ class CodeParser:
     def parseClass(self, lines):
         #TODO: Add block parsing to make this more general?
         lineNum = 0
+        numLines = len(lines)
         line = lines[lineNum]
         className = self.parseClassName(line)
         classFunctions = []
         classLines = []
-        while lineNum < len(lines):
+        while lineNum < numLines:
             line = lines[lineNum]
             line = line.strip()
-            #TODO: Handle multilne strings
             if self.startsMultilineComment(line):
-                print("Parsing Multiline Comment")
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
-                print("Length: {}".format(commentLength))
                 for i in range(commentLength):
                     classLines.append(lines[lineNum])
                     lineNum += 1
@@ -210,7 +204,7 @@ class CodeParser:
                 classFunctions.append(func)
             else:
                 classLines.append(line)
-                if lineNum < len(lines) - 1:
+                if lineNum < numLines:
                     lineNum += 1
         return CodeClass(className, classFunctions, classLines)
 
@@ -231,7 +225,6 @@ class CodeParser:
         function = CodeFunction(name, arguments)
         while lineNum < len(lines):
             line = lines[lineNum]
-            #TODO: Handle multiline strings
             if self.startsMultilineComment(line):
                 print("Parsing Multiline Comment: {}".format(line.strip()))
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
@@ -267,6 +260,13 @@ class CodeParser:
 
     def countIndentation(self, line):
         if line[0].isspace():
+            spaceEnd = 0
+            for i in range(len(line)):
+                if not line[i].isspace():
+                    spaceEnd = i
+            lineSpace = line[:spaceEnd].replace('\t', '    ')
+            line = lineSpace + line[spaceEnd:]
+            print(line)
             return len(line) - len(line.lstrip(line[0]))
         else:
             return 0
@@ -274,82 +274,46 @@ class CodeParser:
     def shouldIgnoreLine(self, line):
         return line.isspace() or len(line) == 0
 
-    def packageBlock(self, minDifference=1):
-        # Keep reading until indentation is less than or equal to where it began
-        # Assumes you can't mix tabs or spaces. Is this correct?
-        blockLines = []
-
-        line = self.currentLine
-        blockLines.append(line)
-        beginningIndentation = self.countIndentation(line) 
-        
-        if self.notLastLine():
-            line = self.nextLine()
-        while self.shouldIgnoreLine(line):
-            line = self.nextLine()
-        indentation = self.countIndentation(line)
-        while not self.endOfBlock(indentation, beginningIndentation, minDifference, line):
-            if self.shouldIgnoreLine(line):
-                if self.notLastLine():
-                    line = self.nextLine()
-                    indentation = self.countIndentation(line)
-                    continue
-                else:
-                    break
-            blockLines.append(line)
-            if self.notLastLine():
-                line = self.nextLine()
-                indentation = self.countIndentation(line) 
-            else:
-                break
-        return blockLines
-
-    def endOfBlock(self, indentation, beginningIndentation, minDifference, line):
-        return not(self.notEndOfFile() and indentation >= beginningIndentation + minDifference)
-
     def lineStartsBlock(self, line):
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         if line:
-            firstWord = line.split()[0]
+            #firstWord = line.split()[0]
+            firstWord = re.findall(r"[\w']+", line)[0]
             firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
             for word in blockWords:
                 if firstWord == word:
+                    print("NEW {} BLOCK: {}".format(firstWord, line.strip()))
                     return True
             return False
         return False
 
     def packageBlockLines(self, lines, lineNum, minDifference=1):
-        blockLines = []
+        blockLines = [lines[lineNum]]
+        numLines = len(lines)
+        beginningIndentation = self.countIndentation(lines[lineNum]) 
 
-        line = lines[lineNum]
-        blockLines.append(line)
-        beginningIndentation = self.countIndentation(line) 
-        
         lineNum += 1
         line = lines[lineNum]
         while self.shouldIgnoreLine(line):
             lineNum += 1
-            if lineNum == len(lines):
+            if lineNum == numLines:
                 return blockLines, lineNum
             line = lines[lineNum] 
-        indentation = self.countIndentation(line)
-        while lineNum < len(lines) and indentation >= beginningIndentation+minDifference:
+        while (lineNum < numLines and 
+               self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference):
+            line = lines[lineNum]
             if self.shouldIgnoreLine(line):
-                if lineNum < len(lines)-1:
+                if lineNum < numLines-1:
                     lineNum += 1
-                    line = lines[lineNum]
-                    indentation = self.countIndentation(line)
                     continue
                 else:
                     break
             blockLines.append(line)
-            if lineNum < len(lines)-1:
+            if lineNum < numLines-1:
                 lineNum += 1
-                line = lines[lineNum] 
-                indentation = self.countIndentation(line) 
             else:
                 break
-        if lineNum == len(lines)-1:
+        if lineNum == numLines-1:
             lineNum += 1
         return blockLines, lineNum
 

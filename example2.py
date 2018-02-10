@@ -38,6 +38,12 @@ def multilineString():
         '''
     print(x)
 
+def functionWithMixedTabsAndSpaces():
+    thisLineHasOneTab = None
+    thisLineHas4Spaces = None
+    if(thisLineHas4Spaces): # this line has 4 spaces
+        thisLineHasTwoTabs = None
+
 
 
 
