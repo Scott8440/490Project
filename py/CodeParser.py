@@ -41,17 +41,19 @@ class CodeParser:
         line = self.currentLine 
         while self.notEndOfFile():
             if 'class' == line.split(' ')[0]:
+                #TODO: Change to packageBlockLines()
                 classLines = self.packageBlock()
                 codeFile.classes.append(self.parseClass(classLines))
                 if self.notLastLine():
                     self.stepBack()
             elif 'def' == line.split(' ')[0]:
+                #TODO: Change to packageBlockLines()
                 functionLines = self.packageBlock()
-                print(functionLines)
                 codeFile.functions.append(self.parseFunction(functionLines))
                 if self.notLastLine():
                     self.stepBack()
             else:
+                #TODO: Change to packageBlockLines()
                 blockLines = self.packageBlock()
                 block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
@@ -138,7 +140,15 @@ class CodeParser:
             lineNum += 1
         while lineNum < len(lines):
             line = lines[lineNum]
-            if lineNum > 0 and self.lineStartsBlock(line):
+            if self.startsMultilineComment(line):
+                print("Parsing Multiline Comment")
+                commentLength = self.getMultilineCommentLength(lines, lineNum)
+                print("Length: {}".format(commentLength))
+                for i in range(commentLength):
+                    block.addLine(lines[lineNum])
+                    lineNum += 1
+                print("Next line: {}".format(lines[lineNum].strip()))
+            elif lineNum > 0 and self.lineStartsBlock(line):
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
                 childBlock = self.parseBlock(childBlockLines)
                 block.addChildBlock(childBlock)
@@ -146,6 +156,24 @@ class CodeParser:
                 block.addLine(line)
                 lineNum += 1
         return block
+
+    def startsMultilineComment(self, line):
+        return ("'''" in line or '"""' in line)
+
+    
+    def getMultilineCommentLength(self, lines, lineNum):
+        start = lineNum
+        end = start
+        firstLine = lines[start]
+        ender = "'''"
+        if ('"""' in firstLine):
+            ender = '"""'
+        if firstLine.count(ender) % 2 == 0:
+            return 1
+        end += 1
+        while end < len(lines) and lines[end].count(ender) < 1:
+            end += 1
+        return end - start + 1
 
     def parseCondition(self, lines):
         i = 0
@@ -168,7 +196,15 @@ class CodeParser:
         while lineNum < len(lines):
             line = lines[lineNum]
             line = line.strip()
-            if 'def' in line.split(' '):
+            #TODO: Handle multilne strings
+            if self.startsMultilineComment(line):
+                print("Parsing Multiline Comment")
+                commentLength = self.getMultilineCommentLength(lines, lineNum)
+                print("Length: {}".format(commentLength))
+                for i in range(commentLength):
+                    classLines.append(lines[lineNum])
+                    lineNum += 1
+            elif 'def' in line.split(' '):
                 funcLines, lineNum = self.packageBlockLines(lines, lineNum)
                 func = self.parseFunction(funcLines)
                 classFunctions.append(func)
@@ -189,20 +225,25 @@ class CodeParser:
         return line[nameStart: nameEnd]
 
     def parseFunction(self, lines):
-        print(lines)
-        print()
         lineNum = 0
         name = self.parseFunctionName(lines[0])
         arguments, lineNum = self.parseFunctionArgs(lines)
         function = CodeFunction(name, arguments)
         while lineNum < len(lines):
             line = lines[lineNum]
-            if lineNum > 0 and self.lineStartsBlock(line):
+            #TODO: Handle multiline strings
+            if self.startsMultilineComment(line):
+                print("Parsing Multiline Comment: {}".format(line.strip()))
+                commentLength = self.getMultilineCommentLength(lines, lineNum)
+                print("Length: {}".format(commentLength))
+                for i in range(commentLength):
+                    function.addLine(lines[lineNum])
+                    lineNum += 1
+            elif lineNum > 0 and self.lineStartsBlock(line):
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
                 childBlock = self.parseBlock(childBlockLines)
                 function.addChildBlock(childBlock)
             else:
-                print(line)
                 function.addLine(line)
                 lineNum += 1
         return function 

@@ -20,3 +20,24 @@ def func(arg1):
         print(x)
     else:
         print(y)
+
+def multilineString():
+    w = """ hello this is a multiline
+        string which has
+        3 lines """
+
+    x = """ tricky string """
+
+    y = """
+        starting a block inside string:
+        def funcTricky():
+            string
+        """
+    z = '''
+        string type 2
+        '''
+    print(x)
+
+
+
+
