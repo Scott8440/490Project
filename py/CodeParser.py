@@ -3,10 +3,7 @@ from CodeClass import CodeClass
 from CodeFunction import CodeFunction
 from CodeFile import CodeFile
 from CodeBlock import CodeBlock
-
-#TODO: Keep track of real line number as a member variable
-#       > Use this to associate each "line" with its real line Number
-#       > Line class will have a line number as well as text and possibly type
+from CodeLine import CodeLine
 
 class CodeParser:
     
@@ -14,8 +11,6 @@ class CodeParser:
         with open(filename, 'r') as f:
             self.lines = f.readlines()
             self.numLines = len(self.lines)
-        self.currentLineNum = 0
-        self.currentLine = self.lines[0]
 
     def notEndOfFile(self, lineNum):
         return lineNum < self.numLines
@@ -28,39 +23,42 @@ class CodeParser:
         lineNum = 0
         while self.notEndOfFile(lineNum):
             line = self.lines[lineNum] 
+            fileLineNumber = lineNum+1 #because the list is 0-indexed
             blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
+            # TODO: Remove the switch cases here since they already exist in parseBlock()
             if 'class' == line.split(' ')[0]:
-                codeFile.classes.append(self.parseClass(blockLines))
+                codeFile.classes.append(self.parseClass(blockLines, fileLineNumber))
             elif 'def' == line.split(' ')[0]:
-                codeFile.functions.append(self.parseFunction(blockLines))
+                print("Function def at line: {}".format(lineNum))
+                codeFile.functions.append(self.parseFunction(blockLines, fileLineNumber))
             else:
-                block = self.parseBlock(blockLines)
+                block = self.parseBlock(blockLines, fileLineNumber)
                 codeFile.blocks.append(block)
         return codeFile
 
-    def parseBlock(self, lines):
+    def parseBlock(self, lines, startLineNumber):
         blockType = self.determineBlockType(lines)
-        block = CodeBlock('noType')
+        block = CodeBlock(startLineNumber, blockType='noType')
         if (blockType == 'def'):
-            block = self.parseFunction(lines)
+            block = self.parseFunction(lines, startLineNumber)
         elif (blockType == 'class'):
             block = self.parseClass()
         elif (blockType == 'if'):
-            block = self.parseIfBlock(lines)
+            block = self.parseIfBlock(lines, startLineNumber)
         elif (blockType == 'else'):
-            block = self.parseElseBlock(lines)
+            block = self.parseElseBlock(lines, startLineNumber)
         elif (blockType == 'elif'):
-            block = self.parseElifBlock(lines)
+            block = self.parseElifBlock(lines, startLineNumber)
         elif (blockType == 'for'):
-            block = self.parseForBlock(lines)
+            block = self.parseForBlock(lines, startLineNumber)
         elif (blockType == 'while'):
-            block = self.parseWhileBlock(lines)
+            block = self.parseWhileBlock(lines, startLineNumber)
         elif (blockType == 'try'):
-            block = self.parseTryBlock(lines)
+            block = self.parseTryBlock(lines, startLineNumber)
         elif (blockType == 'except'):
-            block = self.parseExceptBlock(lines)
+            block = self.parseExceptBlock(lines, startLineNumber)
         else:
-            block = self.parseRegularBlock(lines)
+            block = self.parseRegularBlock(lines, startLineNumber)
         return block
 
     def determineBlockType(self, lines):
@@ -68,43 +66,43 @@ class CodeParser:
         blockType = re.sub("[^a-zA-Z]","", firstLine[0]) #Remove non-alphabet characters
         return blockType
 
-    def parseIfBlock(self, lines):
-        block = self.parseRegularBlock(lines, hasCondition=True)
+    def parseIfBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, hasCondition=True)
         block.blockType = 'if'
         return block
 
-    def parseElseBlock(self, lines):
-        block = self.parseRegularBlock(lines, skipFirstLine=True)
+    def parseElseBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, skipFirstLine=True)
         block.blockType = 'else'
         return block
 
-    def parseElifBlock(self, lines):
-        block = self.parseRegularBlock(lines, hasCondition=True)
+    def parseElifBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, hasCondition=True)
         block.blockType = 'elif'
         return block
 
-    def parseForBlock(self, lines):
-        block = self.parseRegularBlock(lines, hasCondition=True)
+    def parseForBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, hasCondition=True)
         block.blockType = 'for'
         return block
 
-    def parseWhileBlock(self, lines):
-        block = self.parseRegularBlock(lines, hasCondition=True)
+    def parseWhileBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, hasCondition=True)
         block.blockType = 'while'
         return block
 
-    def parseTryBlock(self, lines):
-        block = self.parseRegularBlock(lines, skipFirstLine=True)
+    def parseTryBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, skipFirstLine=True)
         block.blockType = 'try'
         return block
 
-    def parseExceptBlock(self, lines):
-        block = self.parseRegularBlock(lines, skipFirstLine=True)
+    def parseExceptBlock(self, lines, startLineNumber):
+        block = self.parseRegularBlock(lines, startLineNumber, skipFirstLine=True)
         block.blockType = 'except'
         return block
 
-    def parseRegularBlock(self, lines, hasCondition=False, skipFirstLine=False):
-        block = CodeBlock()
+    def parseRegularBlock(self, lines, startLineNumber, hasCondition=False, skipFirstLine=False):
+        block = CodeBlock(startLineNumber)
         lineNum = 0
         if hasCondition:
             condition, lineNum = self.parseCondition(lines)
@@ -113,18 +111,21 @@ class CodeParser:
             lineNum += 1
         while lineNum < len(lines):
             line = lines[lineNum]
-            #TODO: strip comments, add comments to object
-            if self.startsMultilineComment(line):
+            #TODO: strip comments, add comments to object, maybe?
+            if self.shouldIgnoreLine(line):
+                lineNum += 1
+            elif self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    block.addLine(lines[lineNum])
+                    block.addLine(CodeLine(line, startLineNumber+lineNum))
                     lineNum += 1
             elif lineNum > 0 and self.lineStartsBlock(line):
+                blockLineNumber = startLineNumber + lineNum
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
-                childBlock = self.parseBlock(childBlockLines)
+                childBlock = self.parseBlock(childBlockLines, blockLineNumber)
                 block.addChildBlock(childBlock)
             else:
-                block.addLine(line)
+                block.addLine(CodeLine(line, startLineNumber+lineNum))
                 lineNum += 1
         return block
 
@@ -169,7 +170,7 @@ class CodeParser:
         condition = condition.replace('(', '').replace(')', '')
         return condition, endLine+1
 
-    def parseClass(self, lines):
+    def parseClass(self, lines, startLineNumber):
         #TODO: Add block parsing to make this more general?
         #TODO: Get the class parents
         lineNum = 0
@@ -187,17 +188,17 @@ class CodeParser:
             if self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    classLines.append(lines[lineNum])
+                    classLines.append(CodeLine(line, startLineNumber+lineNum))
                     lineNum += 1
             elif 'def' in line.split(' '):
                 funcLines, lineNum = self.packageBlockLines(lines, lineNum)
-                func = self.parseFunction(funcLines)
+                func = self.parseFunction(funcLines, startLineNumber+lineNum)
                 classFunctions.append(func)
             else:
-                classLines.append(line)
+                classLines.append(CodeLine(line, startLineNumber+lineNum))
                 if lineNum < numLines:
                     lineNum += 1
-        return CodeClass(className, classFunctions, classLines)
+        return CodeClass(className, classFunctions, classLines, startLineNumber)
 
     def parseClassName(self, line):
         line = line.strip()
@@ -209,11 +210,11 @@ class CodeParser:
             nameEnd = line.find(':')
         return line[nameStart: nameEnd]
 
-    def parseFunction(self, lines):
+    def parseFunction(self, lines, startLineNumber):
         lineNum = 0
         name = self.parseFunctionName(lines[0])
         arguments, lineNum = self.parseFunctionArgs(lines)
-        function = CodeFunction(name, arguments)
+        function = CodeFunction(name, arguments, startLineNumber)
         while lineNum < len(lines):
             line = lines[lineNum]
             if self.shouldIgnoreLine(line):
@@ -222,14 +223,15 @@ class CodeParser:
             if self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    function.addLine(lines[lineNum])
+                    function.addLine(CodeLine(lines[lineNum], startLineNumber+lineNum))
                     lineNum += 1
             elif lineNum > 0 and self.lineStartsBlock(line):
+                blockLineNumber = startLineNumber + lineNum
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
-                childBlock = self.parseBlock(childBlockLines)
+                childBlock = self.parseBlock(childBlockLines, blockLineNumber)
                 function.addChildBlock(childBlock)
             else:
-                function.addLine(line)
+                function.addLine(CodeLine(lines[lineNum], startLineNumber+lineNum))
                 lineNum += 1
         return function 
 
@@ -270,7 +272,7 @@ class CodeParser:
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         if line:
             firstWord = re.findall(r"[\w']+", line)[0]
-            firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
+            firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters TODO: is this redundant now?
             for word in blockWords:
                 if firstWord == word:
                     return True
@@ -291,12 +293,8 @@ class CodeParser:
                self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference)
                or (lineNum < numLines and self.shouldIgnoreIndentation(lines[lineNum]))):
             line = lines[lineNum]
-            if self.shouldIgnoreLine(line):
-                if lineNum < numLines-1:
-                    lineNum += 1
-                    continue
             blockLines.append(line)
-            if lineNum < numLines: # - 1
+            if lineNum < numLines:
                 lineNum += 1
         return blockLines, lineNum
 
