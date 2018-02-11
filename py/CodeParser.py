@@ -4,6 +4,9 @@ from CodeFunction import CodeFunction
 from CodeFile import CodeFile
 from CodeBlock import CodeBlock
 
+#TODO: Keep track of real line number as a member variable
+#       > Use this to associate each "line" with its real line Number
+#       > Line class will have a line number as well as text and possibly type
 
 class CodeParser:
     
@@ -25,14 +28,12 @@ class CodeParser:
         lineNum = 0
         while self.notEndOfFile(lineNum):
             line = self.lines[lineNum] 
+            blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
             if 'class' == line.split(' ')[0]:
-                classLines, lineNum = self.packageBlockLines(self.lines, lineNum)
-                codeFile.classes.append(self.parseClass(classLines))
+                codeFile.classes.append(self.parseClass(blockLines))
             elif 'def' == line.split(' ')[0]:
-                functionLines, lineNum = self.packageBlockLines(self.lines, lineNum)
-                codeFile.functions.append(self.parseFunction(functionLines))
+                codeFile.functions.append(self.parseFunction(blockLines))
             else:
-                blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
                 block = self.parseBlock(blockLines)
                 codeFile.blocks.append(block)
         return codeFile
@@ -159,18 +160,18 @@ class CodeParser:
         return end - start + 1
 
     def parseCondition(self, lines):
-        i = 0
-        while ':' not in lines[i]:
-            i += 1
-        firstLine = "".join(lines[0:i+1])
+        endLine = 0
+        while ':' not in lines[endLine]:
+            endLine += 1
+        firstLine = "".join(lines[0:endLine+1])
         firstLine = ' '.join(firstLine.split())
         condition = firstLine[firstLine.find(' ')+1: firstLine.find(':')]
         condition = condition.replace('(', '').replace(')', '')
-        return condition, i+1
-
+        return condition, endLine+1
 
     def parseClass(self, lines):
         #TODO: Add block parsing to make this more general?
+        #TODO: Get the class parents
         lineNum = 0
         numLines = len(lines)
         line = lines[lineNum]
@@ -180,6 +181,9 @@ class CodeParser:
         while lineNum < numLines:
             line = lines[lineNum]
             line = line.strip()
+            if self.shouldIgnoreLine(line):
+                lineNum += 1
+                continue
             if self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
@@ -212,6 +216,9 @@ class CodeParser:
         function = CodeFunction(name, arguments)
         while lineNum < len(lines):
             line = lines[lineNum]
+            if self.shouldIgnoreLine(line):
+                lineNum += 1
+                continue
             if self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
@@ -246,17 +253,14 @@ class CodeParser:
     def countIndentation(self, line):
         if line[0].isspace():
             spaceEnd = 0
-            for i in range(len(line)):
-                if not line[i].isspace():
-                    spaceEnd = i
-                    break
+            while spaceEnd < len(line) and line[spaceEnd].isspace():
+                spaceEnd += 1
             lineSpace = line[:spaceEnd].replace('\t', '    ')
             return len(lineSpace)
         else:
             return 0
 
     def shouldIgnoreLine(self, line):
-        #TODO: Ignore indentation with comment, but don't ignore comment
         return line.isspace() or len(line) == 0
 
     def shouldIgnoreIndentation(self, line):
@@ -277,30 +281,22 @@ class CodeParser:
         blockLines = [lines[lineNum]]
         numLines = len(lines)
         beginningIndentation = self.countIndentation(lines[lineNum]) 
-
         lineNum += 1
-        line = lines[lineNum]
-        while self.shouldIgnoreLine(line):
+
+        while self.shouldIgnoreLine(lines[lineNum]):
             lineNum += 1
             if lineNum == numLines:
                 return blockLines, lineNum
-            line = lines[lineNum] 
         while ((lineNum < numLines and 
                self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference)
-               or self.shouldIgnoreIndentation(lines[lineNum])):
+               or (lineNum < numLines and self.shouldIgnoreIndentation(lines[lineNum]))):
             line = lines[lineNum]
             if self.shouldIgnoreLine(line):
                 if lineNum < numLines-1:
                     lineNum += 1
                     continue
-                else:
-                    break
             blockLines.append(line)
-            if lineNum < numLines-1:
+            if lineNum < numLines: # - 1
                 lineNum += 1
-            else:
-                break
-        if lineNum == numLines-1:
-            lineNum += 1
         return blockLines, lineNum
 
