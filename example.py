@@ -41,3 +41,8 @@ def threeLineArgs(arg1, arg2,
                   arg3, arg4,
                   arg5, arg6):
     print("{} {}".format(arg1 + arg2, arg3 + arg4))
+
+def functionWithVariableDeclarations():
+    x = 1
+    y = 2
+    w = 3, z = 4
