@@ -1,7 +1,7 @@
 def hello(name):
     print("Hello, {}".format(name))
 
-class exClass:
+class exClass(parentClass):
     
     staticVar1 = None
     staticVar2 = None

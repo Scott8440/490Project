@@ -3,7 +3,7 @@ import os.path
 
 
 parentDirectory = os.path.split(os.path.dirname(__file__))[0]
-path = os.path.join(parentDirectory, '..', 'example2.py')
+path = os.path.join(parentDirectory, '..', 'example.py')
 #path = 'CodeParser.py'
 
 parser = CodeParser(path)
@@ -14,7 +14,7 @@ print("=== CLASSES:")
 for i in codeFile.classes:
     print(i)
     for j in i.lines:
-        print("  {}".format(j.rstrip()))
+        print("  {}".format(j.line.rstrip()))
     for j in i.memberFunctions:
         j.printSelf(level=2)
 

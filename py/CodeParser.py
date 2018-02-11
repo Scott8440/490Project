@@ -25,24 +25,22 @@ class CodeParser:
             line = self.lines[lineNum] 
             fileLineNumber = lineNum+1 #because the list is 0-indexed
             blockLines, lineNum = self.packageBlockLines(self.lines, lineNum)
-            # TODO: Remove the switch cases here since they already exist in parseBlock()
-            if 'class' == line.split(' ')[0]:
-                codeFile.classes.append(self.parseClass(blockLines, fileLineNumber))
-            elif 'def' == line.split(' ')[0]:
-                print("Function def at line: {}".format(lineNum))
-                codeFile.functions.append(self.parseFunction(blockLines, fileLineNumber))
+            block = self.parseBlock(blockLines, fileLineNumber)
+            if isinstance(block, CodeFunction):
+                codeFile.functions.append(block)
+            elif isinstance(block, CodeClass):
+                codeFile.classes.append(block)
             else:
-                block = self.parseBlock(blockLines, fileLineNumber)
                 codeFile.blocks.append(block)
         return codeFile
 
     def parseBlock(self, lines, startLineNumber):
         blockType = self.determineBlockType(lines)
-        block = CodeBlock(startLineNumber, blockType='noType')
+        block = CodeBlock(startLineNumber, blockType='noType') #TODO: Change this
         if (blockType == 'def'):
             block = self.parseFunction(lines, startLineNumber)
         elif (blockType == 'class'):
-            block = self.parseClass()
+            block = self.parseClass(lines, startLineNumber)
         elif (blockType == 'if'):
             block = self.parseIfBlock(lines, startLineNumber)
         elif (blockType == 'else'):
@@ -102,6 +100,7 @@ class CodeParser:
         return block
 
     def parseRegularBlock(self, lines, startLineNumber, hasCondition=False, skipFirstLine=False):
+        #TODO: Get rid of 'skipFirstLine' and just pass in lines[1:] from those functions
         block = CodeBlock(startLineNumber)
         lineNum = 0
         if hasCondition:
@@ -111,21 +110,21 @@ class CodeParser:
             lineNum += 1
         while lineNum < len(lines):
             line = lines[lineNum]
+            fileLineNumber = startLineNumber + lineNum
             #TODO: strip comments, add comments to object, maybe?
             if self.shouldIgnoreLine(line):
                 lineNum += 1
             elif self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    block.addLine(CodeLine(line, startLineNumber+lineNum))
+                    block.addLine(CodeLine(line, fileLineNumber))
                     lineNum += 1
             elif lineNum > 0 and self.lineStartsBlock(line):
-                blockLineNumber = startLineNumber + lineNum
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
-                childBlock = self.parseBlock(childBlockLines, blockLineNumber)
+                childBlock = self.parseBlock(childBlockLines, fileLineNumber)
                 block.addChildBlock(childBlock)
             else:
-                block.addLine(CodeLine(line, startLineNumber+lineNum))
+                block.addLine(CodeLine(line, fileLineNumber))
                 lineNum += 1
         return block
 
@@ -140,9 +139,7 @@ class CodeParser:
             otherQuoteChar = "'"
         if position is not None:
             leftLine = line[:position]
-            if '#' in leftLine:
-                return False
-            if leftLine.count(otherQuoteChar) % 2 == 1:
+            if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)):
                 return False
             return True
     
@@ -175,17 +172,15 @@ class CodeParser:
         #TODO: Get the class parents
         lineNum = 0
         numLines = len(lines)
-        line = lines[lineNum]
-        className = self.parseClassName(line)
+        className = self.parseClassName(lines[lineNum])
+        classParents, lineNum = self.parseFunctionArgs(lines)
         classFunctions = []
         classLines = []
         while lineNum < numLines:
-            line = lines[lineNum]
-            line = line.strip()
+            line = lines[lineNum].strip()
             if self.shouldIgnoreLine(line):
                 lineNum += 1
-                continue
-            if self.startsMultilineComment(line):
+            elif self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
                     classLines.append(CodeLine(line, startLineNumber+lineNum))
@@ -198,11 +193,11 @@ class CodeParser:
                 classLines.append(CodeLine(line, startLineNumber+lineNum))
                 if lineNum < numLines:
                     lineNum += 1
-        return CodeClass(className, classFunctions, classLines, startLineNumber)
+        return CodeClass(className, classFunctions, classParents, classLines, startLineNumber)
 
     def parseClassName(self, line):
         line = line.strip()
-        nameStart = line.find('class ') + 6
+        nameStart = line.find('class ') + 6 #TODO: Remove magic number
         nameEnd = 0
         if '(' in line:
             nameEnd = line.find('(')
@@ -219,8 +214,7 @@ class CodeParser:
             line = lines[lineNum]
             if self.shouldIgnoreLine(line):
                 lineNum += 1
-                continue
-            if self.startsMultilineComment(line):
+            elif self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
                     function.addLine(CodeLine(lines[lineNum], startLineNumber+lineNum))
@@ -236,13 +230,15 @@ class CodeParser:
         return function 
 
     def parseFunctionName(self, line):
-        nameStart = line.find('def ') + 4
+        nameStart = line.find('def ') + 4 #TODO: Get rid of this magic number
         nameEnd = line.find('(')
         return line[nameStart: nameEnd]
 
-    def parseFunctionArgs(self, lines):
+    def parseFunctionArgs(self, lines): #TODO: Rename since it can be used for more than one thing
         args = []
         i = 0
+        if ('(' not in lines[0]):
+            return args, 0
         while ')' not in lines[i]:
             i += 1
         firstLine = "".join(lines[0:i+1])
@@ -254,14 +250,13 @@ class CodeParser:
         return args, i+1
 
     def countIndentation(self, line):
+        lineSpace = ''
         if line[0].isspace():
             spaceEnd = 0
             while spaceEnd < len(line) and line[spaceEnd].isspace():
                 spaceEnd += 1
-            lineSpace = line[:spaceEnd].replace('\t', '    ')
-            return len(lineSpace)
-        else:
-            return 0
+            lineSpace = line[:spaceEnd].replace('\t', '    ') #TODO: Will this work if the tablength isn't 4?
+        return len(lineSpace)
 
     def shouldIgnoreLine(self, line):
         return line.isspace() or len(line) == 0
@@ -270,16 +265,19 @@ class CodeParser:
         return self.shouldIgnoreLine(line) or line.strip()[0] == '#' 
 
     def lineStartsBlock(self, line):
+        #TODO: Abstract out into another class which will help with multi-language parsing?
+        # i.e. Have a class that stores the block words, reserved words, etc. for each language
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         if line:
             firstWord = re.findall(r"[\w']+", line)[0]
-            firstWord = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters TODO: is this redundant now?
+            firstWord = re.sub("[^a-zA-Z]","", firstWord)
             for word in blockWords:
                 if firstWord == word:
                     return True
-            return False
         return False
 
+    #TODO: Make this just find the length of a block and then have another function
+    # to pull out those lines. Double returns are really confusing
     def packageBlockLines(self, lines, lineNum, minDifference=1):
         blockLines = [lines[lineNum]]
         numLines = len(lines)
@@ -290,12 +288,11 @@ class CodeParser:
             lineNum += 1
             if lineNum == numLines:
                 return blockLines, lineNum
-        while ((lineNum < numLines and 
-               self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference)
-               or (lineNum < numLines and self.shouldIgnoreIndentation(lines[lineNum]))):
-            line = lines[lineNum]
-            blockLines.append(line)
+        while (lineNum < numLines and
+               ((self.countIndentation(lines[lineNum]) >= beginningIndentation+minDifference) or
+               (self.shouldIgnoreIndentation(lines[lineNum])))):
+            blockLines.append(lines[lineNum])
             if lineNum < numLines:
                 lineNum += 1
+        print(dir())
         return blockLines, lineNum
-
