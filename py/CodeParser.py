@@ -247,9 +247,10 @@ class CodeParser:
             i += 1
         firstLine = "".join(lines[0:i+1])
         argString = firstLine[firstLine.find('(')+1: firstLine.find(':')-1]
-        args = argString.split(',')
-        for j in range(len(args)):
-            args[j] = args[j].strip()
+        if len(argString) > 0: 
+            args = argString.split(',')
+            for j in range(len(args)):
+                args[j] = args[j].strip()
         return args, i+1
 
     def countIndentation(self, line):
