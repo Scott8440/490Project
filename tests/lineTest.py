@@ -26,6 +26,57 @@ class TestLineMethods(unittest.TestCase):
         variables = line.extractVariables()
         self.assertEqual(len(variables), 0)
 
+    def testRemoveSimpleString(self):
+        string = "var = 'this is a string'"
+        lineNumber = 7
+        line = CodeLine(string, lineNumber)
+        strippedLine = line.removeString()
+        correctStrip = "var = "
+        self.assertEqual(strippedLine, correctStrip)
+
+    def testRemoveStringWithNoString(self):
+        string = "var = x"
+        lineNumber = 7
+        line = CodeLine(string, lineNumber)
+        stripped = line.removeString()
+        self.assertEqual(line.line, stripped)
+
+    def testRemoveStringWithEscapeChar(self):
+        txtFile = open('escapeCharacterLine.txt', 'r')
+        string = txtFile.readline().rstrip()
+        txtFile.close()
+
+        lineNumber = 7
+        line = CodeLine(string, lineNumber)
+        stripped = line.removeString()
+        correctStrip = "var = "
+        self.assertEqual(stripped, correctStrip)
+
+    def testGetsVariableInStringStartType(self):
+        string = 'multiline = """ start of string'
+        lineNumber = 7
+        line = CodeLine(string, lineNumber, LineTypes.STRING_START)
+        variables = line.extractVariables()
+        self.assertEqual(len(variables), 1)
+        self.assertEqual(variables[0], 'multiline')
+
+    def testIgnoresStringVariableInStringStartType(self):
+        string = 'multiline = """ var = x'
+        lineNumber = 7
+        line = CodeLine(string, lineNumber, LineTypes.STRING_START)
+        variables = line.extractVariables()
+        self.assertEqual(len(variables), 1)
+        self.assertEqual(variables[0], 'multiline')
+
+    def testHandlesCompleteMultilineOnOneLine(self):
+        string = 'multiline = """ bad_var = x """, var = x'
+        lineNumber = 7
+        line = CodeLine(string, lineNumber)
+        variables = line.extractVariables()
+        self.assertEqual(len(variables), 2)
+        self.assertEqual(variables[0], 'multiline')
+        self.assertEqual(variables[1], 'var')
+
 
 if __name__ == '__main__':
     unittest.main()
