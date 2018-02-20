@@ -1,5 +1,5 @@
 import unittest
-from py.CodeLine import CodeLine
+from py.CodeLine import CodeLine, LineTypes
 
 
 class TestLineMethods(unittest.TestCase):
@@ -19,13 +19,12 @@ class TestLineMethods(unittest.TestCase):
         self.assertEqual(len(variables), 1)
         self.assertEqual(variables[0], "var")
 
-    def testNoParseVariableInString(self):
-        string = "string = 'var = 2'"
+    def testNoParseVariableInStringType(self):
+        string = "var = 2" # Assume this has been parsed as a part of a multiline string
         lineNumber = 7
-        line = CodeLine(string, lineNumber)
+        line = CodeLine(string, lineNumber, LineTypes.STRING)
         variables = line.extractVariables()
-        self.assertEqual(len(variables), 1)
-        self.assertEqual(variable[0], 'string')
+        self.assertEqual(len(variables), 0)
 
 
 if __name__ == '__main__':

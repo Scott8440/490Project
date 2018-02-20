@@ -115,9 +115,10 @@ class CodeParser:
             if self.shouldIgnoreLine(line):
                 lineNum += 1
             elif self.startsMultilineComment(line):
+                #TODO: Find a way to record that the first line is a real line, and the following lines are STRINGS
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    block.addLine(CodeLine(line, fileLineNumber))
+                    block.addLine(CodeLine(line, fileLineNumber, CodeLine.lineType.STRING))
                     lineNum += 1
             elif lineNum > 0 and self.lineStartsBlock(line):
                 childBlockLines, lineNum = self.packageBlockLines(lines, lineNum)
@@ -169,7 +170,6 @@ class CodeParser:
 
     def parseClass(self, lines, startLineNumber):
         #TODO: Add block parsing to make this more general?
-        #TODO: Get the class parents
         lineNum = 0
         numLines = len(lines)
         className = self.parseClassName(lines[lineNum])
@@ -217,7 +217,7 @@ class CodeParser:
             elif self.startsMultilineComment(line):
                 commentLength = self.getMultilineCommentLength(lines, lineNum)
                 for i in range(commentLength):
-                    function.addLine(CodeLine(lines[lineNum], startLineNumber+lineNum))
+                    function.addLine(CodeLine(lines[lineNum], startLineNumber+lineNum, CodeLine.lineType.STRING))
                     lineNum += 1
             elif lineNum > 0 and self.lineStartsBlock(line):
                 blockLineNumber = startLineNumber + lineNum
