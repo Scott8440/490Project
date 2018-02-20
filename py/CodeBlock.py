@@ -10,10 +10,12 @@ class CodeBlock:
 
     def addLine(self, line):
         self.lines.append(line)
-        for var in line.extractVariables():
+        for var in line.extractVariables(): # Add variables as lines are added
             self.variables.add((var, line.lineNumber))
 
     def addChildBlock(self, block):
+        #TODO: Should I add the parent block to the child? What can be gained from
+        #       having access to the parent?
         self.childrenBlocks.append(block)
 
     def getLength(self):
@@ -22,11 +24,6 @@ class CodeBlock:
             length += block.getLength()
         return length
 
-    def getVariables(self):
-       for line in self.lines:
-           for var in line.extractVariables():
-               self.variables.add((var, line.lineNumber))
-        
     def printSelf(self, level=1):
         indent = "  "*level
         print("{}{}<{} Block>: {}".format(self.lineNumber,indent, self.blockType, self.getLength()))
