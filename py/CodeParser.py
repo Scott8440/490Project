@@ -276,8 +276,6 @@ class CodeParser:
                     return True
         return False
 
-    #TODO: Make this just find the length of a block and then have another function
-    # to pull out those lines. Double returns are really confusing
     def packageBlockLines(self, lines, lineNum, minDifference=1):
         blockLines = [lines[lineNum]]
         numLines = len(lines)

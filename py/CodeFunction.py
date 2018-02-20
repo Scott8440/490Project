@@ -1,31 +1,22 @@
-class CodeFunction:
+from CodeBlock import CodeBlock
+
+class CodeFunction(CodeBlock):
 
     def __init__(self, name, arguments, lineNumber):
+        CodeBlock.__init__(self, lineNumber, blockType='func')
         self.name = name
         self.arguments = arguments
-        self.blocks = []
-        self.lines = [] 
-        self.lineNumber = lineNumber
-
-    def addChildBlock(self, block):
-        self.blocks.append(block)
-
-    def addLine(self, line):
-        self.lines.append(line)
-
-    def getLength(self):
-        length = len(self.lines)
-        for block in self.blocks:
-            length += block.getLength()
-        return length
+        for arg in self.arguments:
+            self.variables.add((arg, lineNumber))
 
     def printSelf(self, level=1):
         indent = "  "*level
         print("{} {}<Function: {} >".format(self.lineNumber, indent, self.name))
         print("{}    args: {}".format(indent, self.arguments))
+        print("{}    Block Vars: {}".format(indent, self.variables))
         if self.lines:
             for j in self.lines:
                 print("{}   {}{}".format(j.lineNumber, indent, j.line.strip()))
                 print("     {}Vars: {}".format(indent, j.extractVariables()))
-        for j in self.blocks:
+        for j in self.childrenBlocks:
             j.printSelf(level=level+1)

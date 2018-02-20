@@ -10,5 +10,6 @@ class CodeLine:
         # Relies on the variable being in the form: "variable = value"
         # This is not required in python but it's a decent way of getting
         # most of the variable names out of a line
-        variables = re.findall(r"([a-zA-Z_])\w*([ \t])*=", self.line)
+        variables = re.findall(r"(([a-zA-Z_])\w*)([ \t])*=", self.line)
+        variables = [match[0] for match in variables]
         return variables
