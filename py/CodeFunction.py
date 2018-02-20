@@ -7,6 +7,9 @@ class CodeFunction(CodeBlock):
         self.name = name
         self.arguments = arguments
         for arg in self.arguments:
+            equals = arg.find('=')
+            if equals != -1:
+                arg = arg[:arg.find('=')] # Removes value after keyword argument
             self.variables.add((arg, lineNumber))
 
     def printSelf(self, level=1):

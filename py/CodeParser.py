@@ -36,7 +36,7 @@ class CodeParser:
 
     def parseBlock(self, lines, startLineNumber):
         blockType = self.determineBlockType(lines)
-        block = CodeBlock(startLineNumber, blockType='noType') #TODO: Change this
+        block = None
         if (blockType == 'def'):
             block = self.parseFunction(lines, startLineNumber)
         elif (blockType == 'class'):
@@ -57,6 +57,7 @@ class CodeParser:
             block = self.parseExceptBlock(lines, startLineNumber)
         else:
             block = self.parseRegularBlock(lines, startLineNumber)
+            block.blockType = 'noType'
         return block
 
     def determineBlockType(self, lines):
