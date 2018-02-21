@@ -3,8 +3,8 @@ import os.path
 
 
 parentDirectory = os.path.split(os.path.dirname(__file__))[0]
-#path = os.path.join(parentDirectory, '..', 'example.py')
-path = 'CodeParser.py'
+path = os.path.join(parentDirectory, '..', 'example.py')
+#path = 'CodeParser.py'
 
 parser = CodeParser(path)
 

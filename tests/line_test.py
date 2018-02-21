@@ -4,16 +4,15 @@ from py.CodeLine import CodeLine, LineTypes
 
 class TestLineMethods(unittest.TestCase):
 
+    lineNumber = 7 #Dummy lineNumber
     def testLineCreation(self):
         string = "this is a line"
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         self.assertEqual(line.line, string)
         self.assertEqual(line.lineNumber, lineNumber)
 
     def testBasicVariableParsing(self):
         string = "var = 2"
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         variables = line.extractVariables()
         self.assertEqual(len(variables), 1)
@@ -21,14 +20,12 @@ class TestLineMethods(unittest.TestCase):
 
     def testNoParseVariableInStringType(self):
         string = "var = 2" # Assume this has been parsed as a part of a multiline string
-        lineNumber = 7
         line = CodeLine(string, lineNumber, LineTypes.STRING)
         variables = line.extractVariables()
         self.assertEqual(len(variables), 0)
 
     def testRemoveSimpleString(self):
         string = "var = 'this is a string'"
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         strippedLine = line.removeString()
         correctStrip = "var = "
@@ -36,7 +33,6 @@ class TestLineMethods(unittest.TestCase):
 
     def testRemoveStringWithNoString(self):
         string = "var = x"
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         stripped = line.removeString()
         self.assertEqual(line.line, stripped)
@@ -46,15 +42,27 @@ class TestLineMethods(unittest.TestCase):
         string = txtFile.readline().rstrip()
         txtFile.close()
 
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         stripped = line.removeString()
         correctStrip = "var = "
         self.assertEqual(stripped, correctStrip)
 
+    def testRemoveMultipleStrings(self):
+        string = 'var1 = "hello", var2 = "goodbye"'
+        line = CodeLine(string, lineNumber)
+        stripped = line.removeString()
+        correctStrip = 'var1 = , var2 = '
+        self.assertEqual(stripped, correctStrip)
+
+    def testRemoveStringThatDoesntEnd(self):
+        string = 'var1 = "hello'
+        line = CodeLine(string, lineNumber)
+        stripped = line.removeString()
+        correctStrip = 'var1 = '
+        self.assertEqual(stripped, correctStrip)
+
     def testGetsVariableInStringStartType(self):
         string = 'multiline = """ start of string'
-        lineNumber = 7
         line = CodeLine(string, lineNumber, LineTypes.STRING_START)
         variables = line.extractVariables()
         self.assertEqual(len(variables), 1)
@@ -62,7 +70,6 @@ class TestLineMethods(unittest.TestCase):
 
     def testIgnoresStringVariableInStringStartType(self):
         string = 'multiline = """ var = x'
-        lineNumber = 7
         line = CodeLine(string, lineNumber, LineTypes.STRING_START)
         variables = line.extractVariables()
         self.assertEqual(len(variables), 1)
@@ -70,13 +77,11 @@ class TestLineMethods(unittest.TestCase):
 
     def testHandlesCompleteMultilineOnOneLine(self):
         string = 'multiline = """ bad_var = x """, var = x'
-        lineNumber = 7
         line = CodeLine(string, lineNumber)
         variables = line.extractVariables()
         self.assertEqual(len(variables), 2)
         self.assertEqual(variables[0], 'multiline')
         self.assertEqual(variables[1], 'var')
-
 
 if __name__ == '__main__':
     unittest.main()

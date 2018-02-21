@@ -32,32 +32,36 @@ class CodeLine:
         # Removes the strings in a single-line line. Multiline strings dealt with in other function
         stringStart = None
         stringChar = None
-        stringEnd = None
-        i = 0
-        while i <len(self.line):
-            char = self.line[i]
-            if char == '"' or char == "'":
-                # Skips this if it is actually a multiline signifier
-                if self.line[i+1] == char and self.line[i+2] == char:
-                    i += 3    
-                else:
-                    stringChar = char
-                    stringStart = i 
-                    break
-            i += 1
-        newLine = ""
-        if stringStart is not None:
-            index = i+1
-            char = self.line[index]
-            while self.line[index] != stringChar:
-                char = self.line[index]
-                if char == "\\":
+        stringsLeft = True
+        newLine = self.line
+        while stringsLeft:
+            i = 0
+            stringsLeft = False
+            while i < len(newLine):
+                char = newLine[i]
+                if char == '"' or char == "'":
+                    # Skips this if it is actually a multiline signifier
+                    if newLine[i+1] == char and newLine[i+2] == char:
+                        i += 3    
+                    else:
+                        stringChar = char
+                        stringStart = i 
+                        stringsLeft = True
+                        break
+                i += 1
+            if stringStart is not None:
+                index = i+1
+                #char = newLine[index]
+                stringEnd = stringStart
+                while index < len(newLine) and newLine[index] != stringChar:
+                    char = newLine[index]
+                    if char == "\\":
+                        index += 1
                     index += 1
-                index += 1
-            stringEnd = index
-            newLine = self.line[:stringStart] + self.line[stringEnd+1:]
-        else:
-            newLine = self.line
+                stringEnd = index
+                newLine = newLine[:stringStart] + newLine[stringEnd+1:]
+            else:
+                newLine = self.line
         return self.removeMultilineStart(newLine)
 
     def removeMultilineStart(self, line=None):

@@ -27,7 +27,7 @@ class CodeBlock:
     def printSelf(self, level=1):
         indent = "  "*level
         print("{}{}<{} Block>: {}".format(self.lineNumber,indent, self.blockType, self.getLength()))
-        print("{}Block Vars: {}".format(indent, self.variables))
+        print("{}    Block Vars: {}".format(indent, self.variables))
         if self.lines:
             for j in self.lines:
                 print("{}  {}{}".format(j.lineNumber, indent, j.line.strip()))

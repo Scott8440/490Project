@@ -1,9 +1,9 @@
 import re
-from CodeClass import CodeClass
-from CodeFunction import CodeFunction
-from CodeFile import CodeFile
-from CodeBlock import CodeBlock
-from CodeLine import CodeLine
+from py.CodeClass import CodeClass
+from py.CodeFunction import CodeFunction
+from py.CodeFile import CodeFile
+from py.CodeBlock import CodeBlock
+from py.CodeLine import CodeLine
 
 class CodeParser:
     
@@ -293,5 +293,4 @@ class CodeParser:
             blockLines.append(lines[lineNum])
             if lineNum < numLines:
                 lineNum += 1
-        print(dir())
         return blockLines, lineNum
