@@ -2,7 +2,15 @@ import re
 from enum import Enum
 
 class LineTypes(Enum):
-    REGULAR, COMMENT, STRING, STRING_START = range(1,5)
+    REGULAR = 1 
+    COMMENT = 2 
+    STRING = 3 
+    MULTILINE_STRING_START = 4 # Begins a multiline string 
+    UNENDED = 5                # Logical line does not end with newline. e.g. x = 5 \ 
+    UNENDED_SINGLE_QUOTE_STRING = 6 # Logical line does not end because of ' string
+    UNENDED_DOUBLE_QUOTE_STRING = 7 # Logical line does not end because of " string
+    CONTINUES_SINGLE_QUOTE_STRING = 8
+    CONTINUES_DOUBLE_QUOTE_STRING = 9
 
 
 class CodeLine:
@@ -20,7 +28,7 @@ class CodeLine:
         variables = []
         if self.lineType == LineTypes.REGULAR:
             newLine = self.removeString()
-        elif self.lineType == LineTypes.STRING_START:
+        elif self.lineType == LineTypes.MULTILINE_STRING_START:
             newLine = self.removeMultilineStart()
         else:
             return []
@@ -41,7 +49,7 @@ class CodeLine:
                 char = newLine[i]
                 if char == '"' or char == "'":
                     # Skips this if it is actually a multiline signifier
-                    if newLine[i+1] == char and newLine[i+2] == char:
+                    if newLine[i:i+3] == char*3:
                         i += 3    
                     else:
                         stringChar = char
@@ -51,7 +59,6 @@ class CodeLine:
                 i += 1
             if stringStart is not None:
                 index = i+1
-                #char = newLine[index]
                 stringEnd = stringStart
                 while index < len(newLine) and newLine[index] != stringChar:
                     char = newLine[index]
