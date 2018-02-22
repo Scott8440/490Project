@@ -24,7 +24,6 @@ class LineTypes(Enum):
     CONTINUES_DOUBLE_QUOTE_STRING = 20
     ENDS_DOUBLE_QUOTE_STRING = 21
 
-
 class CodeLine:
 
     def __init__(self, line, lineNumber, indentation, lineType=LineTypes.REGULAR):
@@ -32,6 +31,9 @@ class CodeLine:
         self.lineNumber = lineNumber
         self.indentation = indentation
         self.lineType = lineType 
+
+    def printLine(self):
+        print("('{}',{},{},{})".format(self.line.strip(), self.lineNumber, self.indentation, self.lineType))
 
     def extractVariables(self):
         # A rudimentary method of parsing out variable names in this line. 
