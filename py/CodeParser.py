@@ -294,3 +294,87 @@ class CodeParser:
             if lineNum < numLines:
                 lineNum += 1
         return blockLines, lineNum
+
+    # Turn all lines into CodeLine objects
+    def codifyLines(self):
+        codedLines = []
+
+        prevLineType = LineTypes.REGULAR
+        prevIndentation = 0
+        lineNumber = 0
+        while lineNumber < self.numLines:
+            text = self.lines[lineNumber]
+            lineType = self.determineLineType(text, prevLineType)
+            indentation = self.calculateIndentation(text, lineType, prevIndentation)
+            codedLines.append(CodeLine(text, lineNumber, indentation, lineType=lineType))
+
+    # Uses a stack to parse token-by-token
+    # indentation is the same as the first indentation for all lines in this group
+    def parseMultilines(self, lineNumber, indentation):
+        stack = []
+        # Must be in regular mode as the line starts, so first token is a real one
+        startTokens = ['\'', '"', '(', '[', '{']
+        endTokens = [')', ']', '}']
+        line = self.lines[lineNumber]
+        # Modes are either REGULAR, Single_quote_string, double_quote_string, multiline_single, multiline_double
+        prevLineType = LineTypes.REGULAR
+        index = 0
+        while index < len(line):
+            char = line[index]
+            stringMode = False
+            activeStarters = startTokens
+            endingToken = ''
+            if stack:
+                endingToken = self.getEndToken(stack[-1])
+                if stack[-1] in ['"', '\'']: # in string mode, nothing can be added to stack
+                    activeStarters = []
+            if char in activeStarters:
+                stack.append(char)
+            elif char == endingToken:
+                stack.pop()
+            elif char == '\n':
+                # line ends with a certain type
+                #TODO: append coded lines to a member variable?
+                lineType = self.getLineTypeFromStack(stack, prevLineType)
+                codedLine = CodeLine(line, lineNumber, indentation, lineType=lineType)
+                if stack == []:
+                    break
+                else:
+                    lineNumber += 1
+                    line = self.lines[lineNumber]
+                    index =0
+        return lineNumber
+
+    def getEndToken(self, token):
+        tokenMap = {'\'': '\'', '"': '"', '(': ')', '[': ']', '{': '}'}
+        return tokenMap[token]
+
+    def getLineTypeFromStack(self, stack, prevLineType):
+        if not stack:
+            if prevLineType == LineTypes.STARTS_CBRACE_LINE:
+                return LineTypes.ENDS_CBRACE_LINE
+            elif prevLineType == LineTypes.STARTS_SBRACE_LINE:
+                return LineTypes.ENDS_SBRACE_LINE
+            elif prevLineType == LineTypes.STARTS_PARENTHESES_LINE:
+                return LineTypes.ENDS_PARENTHESES_LINE
+            elif prevLineType == LineTypes.STARTS_SINGLE_QUOTE_STRING:
+                return LineTypes.ENDS_SINGLE_QUOTE_STRING
+            elif prevLineType == LineTypes.STARTS_DOUBLE_QUOTE_STRING:
+                return LineTypes.ENDS_DOUBLE_QUOTE_STRING
+            elif prevLineType == LineTypes.REGULAR:
+                return LineTypes.REGULAR
+            return prevLineType 
+        else:
+            token = stack[-1]
+            if token == '\'':
+                return LineTypes.CONTINUES_SINGLE_QUOTE_STRING
+            elif token == '"':
+                return LineTypes.CONTINUES_DOUBLE_QUOTE_STRING
+            elif token == '(':
+                return LineTypes.CONTINUES_PARENTHESES_LINE
+            elif token = '[':
+                return LineTypes.CONTINUES_SBRACE_LINE
+            elif token = '{':
+                return LineTypes.CONTINUES_CBRACE_LINE
+
+

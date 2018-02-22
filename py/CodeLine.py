@@ -4,20 +4,33 @@ from enum import Enum
 class LineTypes(Enum):
     REGULAR = 1 
     COMMENT = 2 
-    STRING = 3 
-    MULTILINE_STRING_START = 4 # Begins a multiline string 
-    UNENDED = 5                # Logical line does not end with newline. e.g. x = 5 \ 
-    UNENDED_SINGLE_QUOTE_STRING = 6 # Logical line does not end because of ' string
-    UNENDED_DOUBLE_QUOTE_STRING = 7 # Logical line does not end because of " string
-    CONTINUES_SINGLE_QUOTE_STRING = 8
-    CONTINUES_DOUBLE_QUOTE_STRING = 9
+    BLOCK_START = 3             # Line signifies the beginning of a new block
+    STARTS_PARENTHESES_LINE = 4
+    CONTINUES_PARENTHESES_LINE = 5
+    ENDS_PARENTHESES_LINE = 6
+    STARTS_CBRACE_LINE = 7
+    CONTINUES_CBRACE_LINE = 8
+    ENDS_CBRACE_LINE = 9
+    STARTS_SBRACE_LINE = 10
+    CONTINUES_SBRACE_LINE = 11
+    ENDS_SBRACE_LINE = 12
+    STARTS_MULTILINE_STRING = 13 # Begins a multiline string 
+    CONTINUES_MULTILINE_STRING = 14 
+    ENDS_MULTILINE_STRING = 15
+    STARTS_SINGLE_QUOTE_STRING = 16 # Logical line does not end because of ' string
+    CONTINUES_SINGLE_QUOTE_STRING = 17
+    ENDS_SINGLE_QUOTE_STRING = 18
+    STARTS_DOUBLE_QUOTE_STRING = 19 # Logical line does not end because of " string
+    CONTINUES_DOUBLE_QUOTE_STRING = 20
+    ENDS_DOUBLE_QUOTE_STRING = 21
 
 
 class CodeLine:
 
-    def __init__(self, line, lineNumber, lineType=LineTypes.REGULAR):
+    def __init__(self, line, lineNumber, indentation, lineType=LineTypes.REGULAR):
         self.line = line
         self.lineNumber = lineNumber
+        self.indentation = indentation
         self.lineType = lineType 
 
     def extractVariables(self):
