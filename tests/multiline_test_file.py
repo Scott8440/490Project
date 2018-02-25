@@ -10,6 +10,15 @@ def simple_parentheses():
     x = (1, 2, 3,
          4, 5, 6)
 
+def mixed_s_c_braces():
+    x = [(1, 2, 3,
+          4, 5, 6)]
+
+    y = [
+        (1, 2, 3,
+         4, 5, 6)
+        ]
+
 def s_string_escaped():
     x = '1 2 3 \
          4 5 6'

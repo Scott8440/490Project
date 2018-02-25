@@ -10,7 +10,7 @@ from py.CodeLine import CodeLine, LineTypes
 class TestParser(unittest.TestCase):
 
 
-    #def testExampleFile(self):
+    # def testExampleFile(self):
     #    parentDirectory = os.path.split(os.path.dirname(__file__))[0]
     #    path = os.path.join(parentDirectory, '..', 'example.py')
     #    parser = CodeParser(path)
@@ -30,22 +30,36 @@ class TestParser(unittest.TestCase):
 #        # Check Blocks
 #        self.assertEqual(len(codeFile.blocks), 5)
 
-    #def testMultilineFile(self):
-        #path = 'multiline_test_file.py' 
-        #parser = CodeParser(path)
-        #codedLines = parser.parseMultilines(1, 1, LineTypes.STARTS_SBRACE_LINE)
-        #self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_SBRACE_LINE)
-        #self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_SBRACE_LINE)
-        #for i in codedLines:
-            #print(i.printLine())
+    def testMultilineFile(self):
+        path = 'multiline_test_file.py'
+        parser = CodeParser(path)
+#        codedLines = parser.parseMultilines(1, 1, LineTypes.STARTS_SBRACE_LINE)
+#        self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_SBRACE_LINE)
+#        self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_SBRACE_LINE)
+        # for i in codedLines:
+        #    print(i.printLine())
+
+#        codedLines = parser.parseMultilines(5, 1, LineTypes.STARTS_CBRACE_LINE)
+#        self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_CBRACE_LINE)
+#        self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_CBRACE_LINE)
 #
-        #codedLines = parser.parseMultilines(5, 1, LineTypes.STARTS_CBRACE_LINE)
-        #self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_CBRACE_LINE)
-        #self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_CBRACE_LINE)
+#        codedLines = parser.parseMultilines(9, 1, LineTypes.STARTS_PARENTHESES_LINE)
+#        self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_PARENTHESES_LINE)
+#        self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_PARENTHESES_LINE)
 #
-        #codedLines = parser.parseMultilines(9, 1, LineTypes.STARTS_PARENTHESES_LINE)
+        #codedLines = parser.parseMultilines(13, 1, LineTypes.STARTS_SBRACE_LINE)
+        #print(codedLines)
         #self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_PARENTHESES_LINE)
-        #self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_PARENTHESES_LINE)
+        #self.assertEqual(codedLines[1].lineType, LineTypes.ENDS_SBRACE_LINE)
+
+        print("Parsing last segment")
+        codedLines = parser.parseMultilines(16, 1, LineTypes.STARTS_SBRACE_LINE)
+        for i in codedLines:
+            i.printLine()
+        self.assertEqual(codedLines[0].lineType, LineTypes.STARTS_SBRACE_LINE)
+        self.assertEqual(codedLines[1].lineType, LineTypes.STARTS_PARENTHESES_LINE)
+        self.assertEqual(codedLines[2].lineType, LineTypes.ENDS_PARENTHESES_LINE)
+        self.assertEqual(codedLines[3].lineType, LineTypes.ENDS_SBRACE_LINE)
 
     def testEscapeNewlineFile(self):
         path = 'escape_newline_test_file.py'

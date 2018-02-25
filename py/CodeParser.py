@@ -337,6 +337,7 @@ class CodeParser:
     # indentation is the same as the first indentation for all lines in this group
     # Start parsing here if this line is determined to begin a multiline segment
     def parseMultilines(self, lineNumber, indentation, lineType):
+        print(" **** PARSING NEW MULTILINE SEGMENT **** ")
         stack = []
         codedLines = []
         # Must be in regular mode as the line starts, so first token is a real one
@@ -379,7 +380,7 @@ class CodeParser:
                     lineNumber += 1
                     line = self.lines[lineNumber]
                     print("new Line: {}".format(line.rstrip()))
-                    lineLenth = len(line)
+                    lineLength = len(line)
                     index =0
         return codedLines
 
