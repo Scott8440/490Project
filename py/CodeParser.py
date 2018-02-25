@@ -4,6 +4,7 @@ from py.CodeFunction import CodeFunction
 from py.CodeFile import CodeFile
 from py.CodeBlock import CodeBlock
 from py.CodeLine import CodeLine, LineTypes
+import py.LineHelpers as LineHelpers
 
 class CodeParser:
     
@@ -319,7 +320,6 @@ class CodeParser:
     def lineIsEscaped(self, line):
         return line[-2] == '\\'
 
-
     # Turn all lines into CodeLine objects
     def codifyLines(self):
         codedLines = []
@@ -329,30 +329,44 @@ class CodeParser:
         lineNumber = 0
         while lineNumber < self.numLines:
             text = self.lines[lineNumber]
-            lineType = self.determineLineType(text, prevLineType)
-            indentation = self.calculateIndentation(text, lineType, prevIndentation)
-            codedLines.append(CodeLine(text, lineNumber, indentation, lineType=lineType))
+            # indentation = self.calculateIndentation(text, prevIndentation)
+            indentation = self.countIndentation(text)
+            if self.startsMultilineComment(text):
+                stringLength = self.getMultilineCommentLength(self.lines, lineNumber)
+                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=LineTypes.STARTS_MULTILINE_STRING))
+                for i in range(1,stringLength-1):
+                    codedLines.append(CodeLine(text, lineNumber + i, indentation, lineType=LineTypes.CONTINUES_MULTILINE_STRING))
+                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=LineTypes.ENDS_MULTILINE_STRING))
+            #TODO: Handle multiline string and multiline segment at same time
+            elif self.startsMultilineSegment(text):
+                segmentLength = self.parseMultilines(lineNumber, indentation)
+            else:
+                codedLines.append(CodeLine(text, lineNumber, indentation))
+        return codedLines
+
+    def startsMultilineSegment(self, text):
+        tokenMap = {'(': ')', '[': ']', '{': '}'}
+        for char in tokenMap.keys():
+            if LineHelpers.countRealCharacter(text, char) > LineHelpers.countRealCharacter(text, tokenMap[char]):
+                return True
+        return False
 
     # Uses a stack to parse token-by-token
     # indentation is the same as the first indentation for all lines in this group
     # Start parsing here if this line is determined to begin a multiline segment
-    def parseMultilines(self, lineNumber, indentation, lineType):
+    def parseMultilines(self, lineNumber, indentation):
         print(" **** PARSING NEW MULTILINE SEGMENT **** ")
+        lineNumber = lineNumber - 1 # To handle zero-indexing
         stack = []
         codedLines = []
-        # Must be in regular mode as the line starts, so first token is a real one
         startTokens = ['\'', '"', '(', '[', '{']
-        endTokens = [')', ']', '}']
         line = self.lines[lineNumber]
         lineLength = len(line)
-        # Modes are either REGULAR, Single_quote_string, double_quote_string, multiline_single, multiline_double
-        prevLineType = LineTypes.REGULAR 
         index = 0
         print("Line: {}".format(line.rstrip()))
         while index < lineLength:
             char = line[index]
             index += 1
-            stringMode = False
             activeStarters = startTokens
             endingToken = ''
             if stack:
@@ -368,15 +382,13 @@ class CodeParser:
             elif char == '\n':
                 print("Found newline")
                 # line ends with a certain type
-                lineType = self.getLineTypeFromStack(stack, prevLineType)
-                codedLines.append(CodeLine(line, lineNumber, indentation, lineType=lineType))
+                codedLines.append(CodeLine(line, lineNumber, indentation))
                 if stack == []:
                     print("Stack empty on newline")
                     break
                 else:
                     print("Stack not empty on newline: {}".format(stack))
                     # Start parsing next line
-                    prevLineType = lineType
                     lineNumber += 1
                     line = self.lines[lineNumber]
                     print("new Line: {}".format(line.rstrip()))
@@ -385,38 +397,4 @@ class CodeParser:
         return codedLines
 
     def getEndToken(self, token):
-        tokenMap = {'\'': '\'', '"': '"', '(': ')', '[': ']', '{': '}'}
-        return tokenMap[token]
-
-    def getLineTypeFromStack(self, stack, prevLineType):
-        print("Prev Type: {}".format(prevLineType))
-        tokenMap = {}
-        if len(stack) == 0:
-            if prevLineType == LineTypes.STARTS_CBRACE_LINE:
-                return LineTypes.ENDS_CBRACE_LINE
-            elif prevLineType == LineTypes.STARTS_SBRACE_LINE:
-                return LineTypes.ENDS_SBRACE_LINE
-            elif prevLineType == LineTypes.STARTS_PARENTHESES_LINE:
-                return LineTypes.ENDS_PARENTHESES_LINE
-            elif prevLineType == LineTypes.STARTS_SINGLE_QUOTE_STRING:
-                return LineTypes.ENDS_SINGLE_QUOTE_STRING
-            elif prevLineType == LineTypes.STARTS_DOUBLE_QUOTE_STRING:
-                return LineTypes.ENDS_DOUBLE_QUOTE_STRING
-            elif prevLineType == LineTypes.REGULAR:
-                return LineTypes.REGULAR
-            return prevLineType 
-        else:
-            token = stack[-1]
-            if prevLineType == LineTypes.REGULAR:
-                tokenMap = {'\'': LineTypes.STARTS_SINGLE_QUOTE_STRING,
-                            '"' : LineTypes.STARTS_DOUBLE_QUOTE_STRING,
-                            '(' : LineTypes.STARTS_PARENTHESES_LINE,
-                            '[' : LineTypes.STARTS_SBRACE_LINE,
-                            '{' : LineTypes.STARTS_CBRACE_LINE}
-            else:
-                tokenMap = {'\'': LineTypes.CONTINUES_CBRACE_LINE,
-                            '"' : LineTypes.CONTINUES_DOUBLE_QUOTE_STRING,
-                            '(' : LineTypes.CONTINUES_PARENTHESES_LINE,
-                            '[' : LineTypes.CONTINUES_SBRACE_LINE,
-                            '{' : LineTypes.CONTINUES_CBRACE_LINE}
-            return tokenMap[token]
+        return {'\'': '\'', '"': '"', '(': ')', '[': ']', '{': '}'}[token]

@@ -1,0 +1,10 @@
+from enum import Enum
+
+class LineTypes(Enum):
+    REGULAR = 1 
+    STARTS__SINGLE_MULTILINE_STRING = 2 # Begins a multiline string 
+    ENDS_SINGLE__MULTILINE_STRING = 3
+    STARTS_DOUBLE_MULTILINE_STRING = 4
+    ENDS_DOUBLE_MULTILINE_STRING = 5
+    CONTINUES_MULTILINE_STRING = 6
+
