@@ -3,7 +3,8 @@ from py.CodeClass import CodeClass
 from py.CodeFunction import CodeFunction
 from py.CodeFile import CodeFile
 from py.CodeBlock import CodeBlock
-from py.CodeLine import CodeLine, LineTypes
+from py.CodeLine import CodeLine
+from py.LineTypes import LineTypes
 import py.LineHelpers as LineHelpers
 
 class CodeParser:
@@ -12,6 +13,7 @@ class CodeParser:
         with open(filename, 'r') as f:
             self.lines = f.readlines()
             self.numLines = len(self.lines)
+        self.logicalLines = self.removeEscapeNewlines()
 
     def notEndOfFile(self, lineNum):
         return lineNum < self.numLines
@@ -131,32 +133,18 @@ class CodeParser:
                 lineNum += 1
         return block
 
-    def startsMultilineComment(self, line):
-        position = None
-        quoteChar = None
-        if ("'''" in line):
-            position = line.find("'''")
-            otherQuoteChar = '"'
-        elif ('"""' in line):
-            position = line.find('"""')
-            otherQuoteChar = "'"
-        if position is not None:
-            leftLine = line[:position]
-            if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)):
-                return False
-            return True
-    
+       
     def getMultilineCommentLength(self, lines, lineNum):
         start = lineNum
         end = start
-        firstLine = lines[start]
+        firstLine = lines[start][0]
         ender = "'''"
         if ('"""' in firstLine):
             ender = '"""'
         if firstLine.count(ender) % 2 == 0:
             return 1
         end += 1
-        while end < len(lines) and lines[end].count(ender) < 1:
+        while end < len(lines) and lines[end][0].count(ender) < 1:
             end += 1
         return end - start + 1
 
@@ -301,7 +289,9 @@ class CodeParser:
         logicalLines = []
         while lineNumber < self.numLines:
             line = self.lines[lineNumber]
-            if self.lineIsEscaped(line):
+            if self.shouldIgnoreLine(line):
+                lineNumber += 1
+            elif self.lineIsEscaped(line):
                 multilineLength = 0
                 logicalLine = "" 
                 while self.lineIsEscaped(line):
@@ -310,7 +300,7 @@ class CodeParser:
                     line = self.lines[lineNumber+multilineLength]
                 logicalLine += line
                 multilineLength += 1
-                logicalLines.append((logicalLine, lineNumber+1))
+                logicalLines.append((logicalLine, lineNumber+1)) # Add 1 to reflect 0-indexing
                 lineNumber += multilineLength
             else:
                 logicalLines.append((line, lineNumber+1))
@@ -320,30 +310,63 @@ class CodeParser:
     def lineIsEscaped(self, line):
         return line[-2] == '\\'
 
-    # Turn all lines into CodeLine objects
+    # Turn all lines into CodeLine objects. Takes care of all multiline strings/segments by assigning them
+    # the correct indentation. These lines can then be parsed into the correct blocks easily
     def codifyLines(self):
         codedLines = []
-
         prevLineType = LineTypes.REGULAR
         prevIndentation = 0
         lineNumber = 0
-        while lineNumber < self.numLines:
-            text = self.lines[lineNumber]
-            # indentation = self.calculateIndentation(text, prevIndentation)
+        lineIndex = 0
+        while lineIndex < len(self.logicalLines):
+            text = self.logicalLines[lineIndex][0]
+            lineNumber = self.logicalLines[lineIndex][1]
             indentation = self.countIndentation(text)
-            if self.startsMultilineComment(text):
-                stringLength = self.getMultilineCommentLength(self.lines, lineNumber)
-                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=LineTypes.STARTS_MULTILINE_STRING))
+            multilineToken = self.startsMultilineComment(text)
+            if multilineToken:
+                stringLength = self.getMultilineCommentLength(self.logicalLines, lineIndex)
+                startType = None
+                endType = None
+                if multilineToken == '"""':
+                    startType = LineTypes.STARTS_DOUBLE_MULTILINE_STRING
+                    endType = LineTypes.ENDS_DOUBLE_MULTILINE_STRING
+                else:
+                    startType = LineTypes.STARTS_SINGLE_MULTILINE_STRING
+                    endType = LineTypes.ENDS_SINGLE__MULTILINE_STRING
+                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
                 for i in range(1,stringLength-1):
-                    codedLines.append(CodeLine(text, lineNumber + i, indentation, lineType=LineTypes.CONTINUES_MULTILINE_STRING))
-                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=LineTypes.ENDS_MULTILINE_STRING))
+                    codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0], lineNumber+i, indentation, lineType=LineTypes.CONTINUES_MULTILINE_STRING))
+                codedLines.append(CodeLine(self.logicalLines[lineIndex+stringLength-1][0], lineNumber+stringLength-1, indentation, lineType=endType))
+                lineIndex += stringLength
             #TODO: Handle multiline string and multiline segment at same time
             elif self.startsMultilineSegment(text):
-                segmentLength = self.parseMultilines(lineNumber, indentation)
+                segmentLength = self.parseMultilines(lineIndex, indentation)
+                for i in range(segmentLength):
+                    codedLines.append(CodeLine(self.lines[lineIndex+i], lineNumber+i, indentation))
+                lineIndex += segmentLength
             else:
                 codedLines.append(CodeLine(text, lineNumber, indentation))
+                lineIndex += 1
         return codedLines
 
+    def startsMultilineComment(self, line):
+        position = None
+        quoteChar = None
+        token = None
+        if ("'''" in line):
+            position = line.find("'''")
+            otherQuoteChar = '"'
+            token = "'''" 
+        elif ('"""' in line):
+            position = line.find('"""')
+            otherQuoteChar = "'"
+            token = '"""'
+        if position is not None:
+            leftLine = line[:position]
+            if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)):
+                return False
+        return token
+ 
     def startsMultilineSegment(self, text):
         tokenMap = {'(': ')', '[': ']', '{': '}'}
         for char in tokenMap.keys():
@@ -354,16 +377,15 @@ class CodeParser:
     # Uses a stack to parse token-by-token
     # indentation is the same as the first indentation for all lines in this group
     # Start parsing here if this line is determined to begin a multiline segment
-    def parseMultilines(self, lineNumber, indentation):
-        print(" **** PARSING NEW MULTILINE SEGMENT **** ")
-        lineNumber = lineNumber - 1 # To handle zero-indexing
+    def parseMultilines(self, lineIndex, indentation):
         stack = []
-        codedLines = []
+        # codedLines = []
+        segmentLength = 0
         startTokens = ['\'', '"', '(', '[', '{']
-        line = self.lines[lineNumber]
+        #line = self.lines[lineNumber]
+        line = self.logicalLines[lineIndex][0]
         lineLength = len(line)
         index = 0
-        print("Line: {}".format(line.rstrip()))
         while index < lineLength:
             char = line[index]
             index += 1
@@ -374,27 +396,23 @@ class CodeParser:
                 if stack[-1] in ['"', '\'']: # in string mode, nothing can be added to stack
                     activeStarters = []
             if char in activeStarters:
-                print("Appended {}".format(char))
                 stack.append(char)
             elif char == endingToken:
-                print("Popped")
                 stack.pop()
             elif char == '\n':
-                print("Found newline")
                 # line ends with a certain type
-                codedLines.append(CodeLine(line, lineNumber, indentation))
+                # codedLines.append(CodeLine(line, lineNumber, indentation))
+                segmentLength += 1
                 if stack == []:
-                    print("Stack empty on newline")
                     break
                 else:
-                    print("Stack not empty on newline: {}".format(stack))
                     # Start parsing next line
-                    lineNumber += 1
-                    line = self.lines[lineNumber]
-                    print("new Line: {}".format(line.rstrip()))
+                    lineIndex += 1
+                    # line = self.lines[lineNumber]
+                    line = self.logicalLines[lineIndex][0]
                     lineLength = len(line)
                     index =0
-        return codedLines
+        return segmentLength 
 
     def getEndToken(self, token):
         return {'\'': '\'', '"': '"', '(': ')', '[': ']', '{': '}'}[token]
