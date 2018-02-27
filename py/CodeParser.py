@@ -37,31 +37,73 @@ class CodeParser:
                 codeFile.blocks.append(block)
         return codeFile
 
-    def parseBlock(self, lines, startLineNumber):
-        blockType = self.determineBlockType(lines)
-        block = None
+    def parseFile(self):
+        codeFile = CodeFile()
+        lineIndex = 0
+        while lineIndex < len(self.codedLines):
+            line = self.codedLines[lineIndex].line
+            if self.lineStartsBlock(line):
+                newBlock = self.parseBlock(lineI
+                codeFile.addChildBlock(self.parseBlock(lineIndex))
+                lineIndex += 
+            else:
+                codeFile.addLine(self.codedLines[lineIndex])
+                lineIndex += 1
+
+    def parseBlock(self, lineIndex):
+        line = self.codedLines[lineIndex].line
+        startLineNumber = self.codedLines[lineIndex].linNumber
+        baseIndentation = self.countIndentation(line)
+        blockType = self.determineBlockType(line)
+        block = CodeBlock(startLineNumber)
+
+        definitionLength = 1
         if (blockType == 'def'):
-            block = self.parseFunction(lines, startLineNumber)
+            name = self.parseFunctionName(lineIndex)
+            args = self.parseFunctionArgs(lineIndex)
+            block = CodeFunction(name, args, startLineNumber)
         elif (blockType == 'class'):
-            block = self.parseClass(lines, startLineNumber)
+            name = self.parseclassName(lineIndex)
+            parentClasses, definitionLength = self.parseFunctionArgs(lineIndex)
+            block = CodeClass(name, parentClasses, startLineNumber)
         elif (blockType == 'if'):
-            block = self.parseIfBlock(lines, startLineNumber)
+            condition, definitionLength = self.parseCondition(lineIndex)
+            block.condition = condition
+            block.blockType = blockType
         elif (blockType == 'else'):
-            block = self.parseElseBlock(lines, startLineNumber)
+            block.blockType = blockType
         elif (blockType == 'elif'):
-            block = self.parseElifBlock(lines, startLineNumber)
+            condition, definitionLength = self.parseCondition(lineIndex)
+            block.condition = condition
+            block.blockType = blockType
         elif (blockType == 'for'):
-            block = self.parseForBlock(lines, startLineNumber)
+            condition, definitionLength = self.parseCondition(lineIndex)
+            block.condition = condition
+            block.blockType = blockType
         elif (blockType == 'while'):
-            block = self.parseWhileBlock(lines, startLineNumber)
+            condition, definitionLength = self.parseCondition(lineIndex)
+            block.condition = condition
+            block.blockType = blockType
         elif (blockType == 'try'):
-            block = self.parseTryBlock(lines, startLineNumber)
+            block.blockType = blockType
         elif (blockType == 'except'):
-            block = self.parseExceptBlock(lines, startLineNumber)
+            block.blockType = blockType
         else:
-            block = self.parseRegularBlock(lines, startLineNumber)
             block.blockType = 'noType'
-        return block
+        return self.buildBlock(lineIndex+definitionLength, baseIndentation, block)
+
+    def buildBlock(self, lineIndex, baseIndentation, block):
+        # takes the index of the first line after the block definition
+        # then continues through the file until the indentation is less than
+        # the base indentation. If a new block is defined, it recursively parses
+        # the block and adds it as a child
+        while (lineIndex < len(self.codedLines) and
+                self.codedLines[lineIndex].indentation > baseIndentation):
+            line = self.codedLines[lineIndex].line
+            if self.lineStartsBlock(line):
+                block.addChildBlock(self.parseBlock(lineIndex))
+            else:
+                block.addLine(self.codedLines[lineIndex])
 
     def determineBlockType(self, lines):
         firstLine = re.findall(r"[\w']+", lines[0])
@@ -284,6 +326,13 @@ class CodeParser:
                 lineNum += 1
         return blockLines, lineNum
 
+    #def packageBlock(self, lineIndex):
+    #    blockType = self.determineBlockType(self.codedLines[lineIndex].line)
+#
+#        baseIndentation = self.codedLines[lineIndex].indentation
+#        lineIndex += 1
+#        while self.codedLines[lineIndex].indentation > baseIndentation:
+
     def removeEscapeNewlines(self):
         lineNumber = 0
         logicalLines = []
@@ -314,8 +363,6 @@ class CodeParser:
     # the correct indentation. These lines can then be parsed into the correct blocks easily
     def codifyLines(self):
         codedLines = []
-        prevLineType = LineTypes.REGULAR
-        prevIndentation = 0
         lineNumber = 0
         lineIndex = 0
         while lineIndex < len(self.logicalLines):
@@ -335,14 +382,18 @@ class CodeParser:
                     endType = LineTypes.ENDS_SINGLE__MULTILINE_STRING
                 codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
                 for i in range(1,stringLength-1):
-                    codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0], lineNumber+i, indentation, lineType=LineTypes.CONTINUES_MULTILINE_STRING))
-                codedLines.append(CodeLine(self.logicalLines[lineIndex+stringLength-1][0], lineNumber+stringLength-1, indentation, lineType=endType))
+                    codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
+                                      lineNumber+i, indentation,
+                                      lineType=LineTypes.CONTINUES_MULTILINE_STRING))
+                codedLines.append(CodeLine(self.logicalLines[lineIndex+stringLength-1][0],
+                                           lineNumber+stringLength-1, indentation,
+                                           lineType=endType))
                 lineIndex += stringLength
             #TODO: Handle multiline string and multiline segment at same time
             elif self.startsMultilineSegment(text):
                 segmentLength = self.parseMultilines(lineIndex, indentation)
                 for i in range(segmentLength):
-                    codedLines.append(CodeLine(self.lines[lineIndex+i], lineNumber+i, indentation))
+                    codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0], lineNumber+i, indentation))
                 lineIndex += segmentLength
             else:
                 codedLines.append(CodeLine(text, lineNumber, indentation))

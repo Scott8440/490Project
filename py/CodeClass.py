@@ -1,6 +1,9 @@
-class CodeClass:
+from py.CodeBlock import CodeBlock
 
-    def __init__(self, name, classFunctions, classParents, classLines, lineNumber):
+
+class CodeClass(CodeBlock):
+
+    def __init__(self, name, classParents, lineNumber):
         self.name = name 
         self.memberVariables = []
         self.memberFunctions = classFunctions

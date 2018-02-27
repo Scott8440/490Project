@@ -69,6 +69,8 @@ class TestParser(unittest.TestCase):
         path = 'multiline_test_file.py'
         parser = CodeParser(path)
         parser.logicalLines = parser.removeEscapeNewlines()
+        for i in parser.logicalLines:
+            print(i)
         codedLines = parser.codifyLines()
         for i in range(len(codedLines)):
             print("{}".format(i))
@@ -77,7 +79,14 @@ class TestParser(unittest.TestCase):
         self.assertEqual(codedLines[0].indentation, 0)
         self.assertEqual(codedLines[1].indentation, 4)
         self.assertEqual(codedLines[2].indentation, 4) # indentation remains same throughout multiline segment
-        self.assertEqual(codedLines[16].indentation, 4)
+        self.assertEqual(codedLines[3].indentation, 0)
+        self.assertEqual(codedLines[4].indentation, 4)
+        self.assertEqual(codedLines[5].indentation, 4)
+
+        
+        self.assertEqual(codedLines[5].indentation, 0)
+        self.assertEqual(codedLines[7].indentation, 4)
+        self.assertEqual(codedLines[8].indentation, 4)
         self.assertEqual(codedLines[17].indentation, 4)
         self.assertEqual(codedLines[18].indentation, 4)
         self.assertEqual(codedLines[19].indentation, 4)

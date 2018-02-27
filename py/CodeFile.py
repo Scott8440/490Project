@@ -9,6 +9,10 @@ class CodeFile:
 
     def addLine(self, line):
         self.lines.append(line)
+
+    def addChildBlock(self, block):
+        self.blocks.append(block)
+
     def parseFile(self, filename):
        codeParser = CodeParser()
        with open(filename) as f:
