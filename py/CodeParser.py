@@ -15,14 +15,32 @@ class CodeParser:
             self.numLines = len(self.lines)
         self.logicalLines = self.removeEscapeNewlines()
         self.codedLines = self.codifyLines()
+        self.currentCodedLineIndex = 0
+
+    def getCodedLine(self):
+        if self.currentCodedLineIndex < len(self.codedLines):
+            newLine = self.codedLines[self.currentCodedLineIndex]
+            self.currentCodedLineIndex += 1
+            return newLine
+        else:
+            return None
+
+    def consumeLine(self):
+        self.currentCodedLineIndex += 1
+
+    def stepBack(self):
+        self.currentCodedLineIndex -= 1
 
     def parseFile(self):
         codeFile = CodeFile()
-        lineIndex = 0
-        while lineIndex < len(self.codedLines):
-            line = self.codedLines[lineIndex].line
-            if self.lineStartsBlock(line):
-                newBlock, lineIndex = self.parseBlock(lineIndex)
+        line = self.getCodedLine()
+        while line:
+            text = line.line
+            if self.lineStartsBlock(text):
+                print("new block: {}".format(text.strip()))
+                newBlock = self.parseBlock(line)
+                newBlock.printSelf()
+                print("index after block: {}".format(self.currentCodedLineIndex))
                 if isinstance(newBlock, CodeFunction):
                     codeFile.addFunction(newBlock)
                 elif isinstance(newBlock, CodeClass):
@@ -30,72 +48,76 @@ class CodeParser:
                 else:
                     codeFile.addChildBlock(newBlock)
             else:
-                codeFile.addLine(self.codedLines[lineIndex])
-                lineIndex += 1
+                codeFile.addLine(line)
+                print("parse file line: {}".format(text.strip()))
+            line = self.getCodedLine()
         return codeFile
 
-    def parseBlock(self, lineIndex):
-        line = self.codedLines[lineIndex].line
-        startLineNumber = self.codedLines[lineIndex].lineNumber
-        baseIndentation = self.countIndentation(line)
-        blockType = self.determineBlockType(line)
+    def parseBlock(self, line):
+        text = line.line
+        startLineNumber = line.lineNumber
+        baseIndentation = line.indentation
+        blockType = self.determineBlockType(text)
         block = CodeBlock(startLineNumber)
+        print("parsing {} block".format(blockType))
 
         if (blockType == 'def'):
-            name = self.parseFunctionName(lineIndex)
-            args, lineIndex = self.parseFunctionArgs(lineIndex)
+            name = self.parseFunctionName(text)
+            args = self.parseFunctionArgs(line)
             block = CodeFunction(name, args, startLineNumber)
         elif (blockType == 'class'):
-            name = self.parseClassName(lineIndex)
-            parentClasses, lineIndex = self.parseFunctionArgs(lineIndex)
+            name = self.parseClassName(text)
+            parentClasses = self.parseFunctionArgs(line)
             block = CodeClass(name, parentClasses, startLineNumber)
         elif (blockType == 'if'):
-            condition, lineIndex = self.parseCondition(lineIndex)
+            condition = self.parseCondition(line)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'else'):
             block.blockType = blockType
-            lineIndex += 1
+            self.consumeLine()
         elif (blockType == 'elif'):
-            condition, lineIndex = self.parseCondition(lineIndex)
+            condition = self.parseCondition(line)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'for'):
-            condition, lineIndex = self.parseCondition(lineIndex)
+            condition = self.parseCondition(line)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'while'):
-            condition, lineIndex = self.parseCondition(lineIndex)
+            condition = self.parseCondition(line)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'try'):
             block.blockType = blockType
-            lineIndex += 1
+            self.consumeLine()
         elif (blockType == 'except'):
             block.blockType = blockType
-            lineIndex += 1
+            self.consumeLine()
         else:
             block.blockType = 'noType'
-            lineIndex += 1
-        block, lineIndex = self.buildBlock(lineIndex, baseIndentation, block)
-        return block, lineIndex
+            self.consumeLine()
+        block = self.buildBlock(baseIndentation, block)
+        return block
 
-    def buildBlock(self, lineIndex, baseIndentation, block):
+    def buildBlock(self, baseIndentation, block):
         # takes the index of the first line after the block definition
         # then continues through the file until the indentation is less than
         # the base indentation. If a new block is defined, it recursively parses
         # the block and adds it as a child
-        while (lineIndex < len(self.codedLines) and
-                (self.codedLines[lineIndex].indentation > baseIndentation 
-                 or self.codedLines[lineIndex].indentation == None)):
-            line = self.codedLines[lineIndex].line
-            if self.lineStartsBlock(line):
-                childBlock, lineIndex= self.parseBlock(lineIndex)
+
+        line = self.getCodedLine()
+        while line != None and (line.indentation == None or line.indentation > baseIndentation):
+            text = line.line
+            if self.lineStartsBlock(text):
+                childBlock = self.parseBlock(line)
                 block.addChildBlock(childBlock)
             else:
-                block.addLine(self.codedLines[lineIndex])
-                lineIndex += 1
-        return block, lineIndex
+                block.addLine(line)
+            line = self.getCodedLine()
+        if line:
+            self.stepBack()
+        return block
 
     def determineBlockType(self, text):
         firstWord = re.findall(r"[\w']+", text.strip().split(' ')[0])[0]
@@ -116,56 +138,56 @@ class CodeParser:
             end += 1
         return end - start + 1
 
-    def parseCondition(self, lineIndex):
+    def parseCondition(self, line):
         endLine = 0
         #TODO: What if ':' is in a string?
-        conLine = self.codedLines[lineIndex].line
-        if ':' not in self.codedLines[lineIndex].line:
-            lineIndex += 1
-            while ':' not in self.codedLines[lineIndex].line:
-                conLine = conLine.join(self.codedLines[lineIndex].line)
-                lineIndex += 1
-            conLine = conLine.join(self.codedLines[lineIndex].line)
+        conLine = line.line
+        if ':' not in conLine:
+            line = self.getCodedLine()
+            while line and ':' not in line.text:
+                conLine = conLine.join(line.text)
+                line = self.getCodedLine()
+            conLine = conLine.join(line.text)
         conLine = ' '.join(conLine.split())
         condition = conLine[conLine.find(' ')+1: conLine.find(':')]
         condition = condition.replace('(', '').replace(')', '')
-        return condition, lineIndex+1
+        return condition
 
-    def parseClassName(self, lineIndex):
-        line = self.codedLines[lineIndex].line.strip()
-        nameStart = line.find('class ') + 6 #TODO: Remove magic number
+    def parseClassName(self, text):
+        #TODO: Change param to be actual line
+        text = text.strip()
+        nameStart = text.find('class ') + 6 #TODO: Remove magic number
         nameEnd = 0
-        if '(' in line:
-            nameEnd = line.find('(')
+        if '(' in text:
+            nameEnd = text.find('(')
         else:
-            nameEnd = line.find(':')
-        return line[nameStart: nameEnd]
+            nameEnd = text.find(':')
+        return text[nameStart: nameEnd]
 
-    def parseFunctionName(self, lineIndex):
-        line = self.codedLines[lineIndex].line.strip()
-        nameStart = line.find('def ') + 4 #TODO: Get rid of this magic number
-        nameEnd = line.find('(')
-        return line[nameStart: nameEnd]
+    def parseFunctionName(self, text):
+        nameStart = text.find('def ') + 4 #TODO: Get rid of this magic number
+        nameEnd = text.find('(')
+        return text[nameStart: nameEnd]
 
-    def parseFunctionArgs(self, lineIndex): #TODO: Rename since it can be used for more than one thing
+    def parseFunctionArgs(self, line):
         args = []
-        startIndex = lineIndex
-        argLine = self.codedLines[lineIndex].line 
-        line = self.codedLines[lineIndex].line
-        if ('(' not in line):
+        linesConsumed = 0
+        argLine = line.line
+        if ('(' not in line.line):
             return args, 0
-        while ')' not in self.codedLines[lineIndex].line:
-            if lineIndex > startIndex:
-                argLine += self.codedLines[lineIndex].line
-            lineIndex += 1
-        if lineIndex != startIndex:
-            argLine += self.codedLines[lineIndex].line
+        while ')' not in line.line:
+            if linesConsumed > 0:
+                argLine += line.line
+            line = self.getCodedLine()
+            linesConsumed += 1
+        if linesConsumed > 0:
+            argLine += line.line
         argString = argLine[argLine.find('(')+1: argLine.find(':')-1]
         if len(argString) > 0: 
             args = argString.split(',')
             for j in range(len(args)):
                 args[j] = args[j].strip()
-        return args, lineIndex+1
+        return args
 
     def countIndentation(self, text):
         lineSpace = ''

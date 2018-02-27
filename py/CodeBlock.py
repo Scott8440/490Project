@@ -34,6 +34,5 @@ class CodeBlock:
         if self.lines:
             for j in self.lines:
                 print("{}  {}{}".format(j.lineNumber, indent, j.line.strip()))
-                print("    {}Vars: {}".format(indent, j.extractVariables()))
         for j in self.childrenBlocks:
             j.printSelf(level=level+1)
