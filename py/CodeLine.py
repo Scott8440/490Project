@@ -59,7 +59,7 @@ class CodeLine:
             commentStart = text.find(token)
             commentEnd = text[commentStart+1:].find(token)
             if commentEnd != -1:
-                commendEnd += commentStart
+                commentEnd += commentStart
                 text = text[0:commentStart] + text[commentEnd+4:]
             else:
                 text = text[0:commentStart]

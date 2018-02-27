@@ -15,6 +15,8 @@ class CodeParser:
             self.numLines = len(self.lines)
         self.logicalLines = self.removeEscapeNewlines()
         self.codedLines = self.codifyLines()
+        for i in self.codedLines:
+            i.printLine()
         self.currentCodedLineIndex = 0
 
     def getCodedLine(self):
@@ -36,7 +38,7 @@ class CodeParser:
         line = self.getCodedLine()
         while line:
             text = line.line
-            if self.lineStartsBlock(text):
+            if self.lineStartsBlock(line):
                 print("new block: {}".format(text.strip()))
                 newBlock = self.parseBlock(line)
                 newBlock.printSelf()
@@ -109,7 +111,7 @@ class CodeParser:
         line = self.getCodedLine()
         while line != None and (line.indentation == None or line.indentation > baseIndentation):
             text = line.line
-            if self.lineStartsBlock(text):
+            if self.lineStartsBlock(line):
                 childBlock = self.parseBlock(line)
                 block.addChildBlock(childBlock)
             else:
@@ -140,21 +142,19 @@ class CodeParser:
 
     def parseCondition(self, line):
         endLine = 0
-        #TODO: What if ':' is in a string?
         conLine = line.line
-        if ':' not in conLine:
+        if ':' not in line.removeStrings():
             line = self.getCodedLine()
-            while line and ':' not in line.text:
-                conLine = conLine.join(line.text)
+            while line and ':' not in line.removeStrings():
+                conLine = conLine.join(line.line)
                 line = self.getCodedLine()
-            conLine = conLine.join(line.text)
+            conLine = conLine.join(line.line)
         conLine = ' '.join(conLine.split())
         condition = conLine[conLine.find(' ')+1: conLine.find(':')]
         condition = condition.replace('(', '').replace(')', '')
         return condition
 
     def parseClassName(self, text):
-        #TODO: Change param to be actual line
         text = text.strip()
         nameStart = text.find('class ') + 6 #TODO: Remove magic number
         nameEnd = 0
@@ -204,12 +204,16 @@ class CodeParser:
     def shouldIgnoreIndentation(self, text):
         return self.shouldIgnoreLine(text) or (text.strip()[0] == '#')
 
-    def lineStartsBlock(self, text):
+    def lineStartsBlock(self, line):
         #TODO: Abstract out into another class which will help with multi-language parsing?
         # i.e. Have a class that stores the block words, reserved words, etc. for each language
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
+        text = line.removeStrings()
         if text:
-            firstWord = re.findall(r"[\w']+", text)[0]
+            wordMatches = re.findall(r"[\w']+", text)
+            if not wordMatches:
+                return False
+            firstWord = wordMatches[0]
             firstWord = re.sub("[^a-zA-Z]","", firstWord)
             for word in blockWords:
                 if firstWord == word:
@@ -262,7 +266,7 @@ class CodeParser:
                     endType = LineTypes.ENDS_DOUBLE_MULTILINE_STRING
                 else:
                     startType = LineTypes.STARTS_SINGLE_MULTILINE_STRING
-                    endType = LineTypes.ENDS_SINGLE__MULTILINE_STRING
+                    endType = LineTypes.ENDS_SINGLE_MULTILINE_STRING
                 codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
                 for i in range(1,stringLength-1):
                     codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
@@ -300,7 +304,8 @@ class CodeParser:
             token = '"""'
         if position is not None:
             leftLine = text[:position]
-            if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)):
+            if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)
+                 or text.count(token) % 2 == 0):
                 return False
         return token
  
