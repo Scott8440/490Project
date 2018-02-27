@@ -2,10 +2,16 @@ import re
 
 def removeStrings(line):
     # Removes the strings in a single-line line. Multiline strings dealt with in other function
-    stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)('|\\$))|(\"(?!\"\")(?!\")(?<!\"\").*?(?<!\\)(\"|\\$))/gm"
-    stringMatcherMultiline = re.compile(stringMatcher, re.MULTILINE)
+    stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)('|\\$))|(\"(?!\"\")(?!\")(?<!\"\").*?(?<!\\)(\"|\\$))"
+    stringMatcher = re.compile(stringMatcher, re.MULTILINE)
+    strippedLine = re.sub(stringMatcher, '', line)
+
+    # removes a mulitiline string that's on a single line like this """ string """
+    multiStringMatcher = r"('''.*?(?<!\\)(''|\\$))|(\"\"\".*?(\"\"\"|\\$))"
+    mutliStringMatcher = re.compile(multiStringMatcher, re.MULTILINE)
+    strippedLine = re.sub(multiStringMatcher, '', strippedLine)
+    
     # stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)'|\"(?!\"\")(?!\")(?<!\"\")(?!\").*?(?<!\\)\")"
-    strippedLine = re.sub(stringMatcherMultiline, '', line)
     return strippedLine
     
 def removeMultilineString(line):

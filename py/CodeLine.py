@@ -21,8 +21,8 @@ class CodeLine:
         # most of the variable names out of a line
         variables = []
         if self.lineType == LineTypes.REGULAR:
-            newLine = self.removeString()
-        elif (self.lineType == LineTypes.STARTS__SINGLE_MULTILINE_STRING 
+            newLine = self.removeStrings()
+        elif (self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING 
               or self.lineType == LineTypes.STARTS_DOUBLE_MULTILINE_STRING
               or self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING
               or self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING):
@@ -33,11 +33,11 @@ class CodeLine:
         variables = [match[0] for match in matches]
         return variables
 
-    def removeString(self):
+    def removeStrings(self):
         # Removes the strings in a single-line line. Multiline strings dealt with in other function
+        if self.lineType == LineTypes.CONTINUES_MULTILINE_STRING:
+            return ""
         strippedLine = LineHelpers.removeStrings(self.line)
-        # stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)'|\"(?!\"\")(?!\")(?<!\"\")(?!\").*?(?<!\\)\")"
-        # strippedLine = re.sub(stringMatcher, '', self.line)
         return self.removeMultilineString(strippedLine)
 
     def removeMultilineString(self, text=None):

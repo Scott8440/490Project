@@ -98,13 +98,12 @@ class CodeParser:
         return block, lineIndex
 
     def determineBlockType(self, text):
-        text = text.strip()
-        firstWord = re.findall(r"[\w']+", text.split(' ')[0])[0]
+        firstWord = re.findall(r"[\w']+", text.strip().split(' ')[0])[0]
         blockType = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
         return blockType
 
-    def getMultilineCommentLength(self, lineIndex):
-        start = lineNum
+    def getMultilineCommentLength(self, lines, lineIndex):
+        start = lineIndex
         end = start
         firstLine = lines[start][0]
         ender = "'''"
@@ -133,8 +132,7 @@ class CodeParser:
         return condition, lineIndex+1
 
     def parseClassName(self, lineIndex):
-        line = self.codedLines[lineIndex].line
-        line = line.strip()
+        line = self.codedLines[lineIndex].line.strip()
         nameStart = line.find('class ') + 6 #TODO: Remove magic number
         nameEnd = 0
         if '(' in line:
@@ -144,7 +142,7 @@ class CodeParser:
         return line[nameStart: nameEnd]
 
     def parseFunctionName(self, lineIndex):
-        line = self.codedLines[lineIndex].line
+        line = self.codedLines[lineIndex].line.strip()
         nameStart = line.find('def ') + 4 #TODO: Get rid of this magic number
         nameEnd = line.find('(')
         return line[nameStart: nameEnd]
@@ -179,10 +177,10 @@ class CodeParser:
         return len(lineSpace)
 
     def shouldIgnoreLine(self, text):
-        return text.isspace() or len(text) == 0
+        return text.isspace() or (len(text) == 0)
 
     def shouldIgnoreIndentation(self, text):
-        return self.shouldIgnoreLine(text) or text.strip()[0] == '#' 
+        return self.shouldIgnoreLine(text) or (text.strip()[0] == '#')
 
     def lineStartsBlock(self, text):
         #TODO: Abstract out into another class which will help with multi-language parsing?
@@ -287,7 +285,8 @@ class CodeParser:
     def startsMultilineSegment(self, text):
         tokenMap = {'(': ')', '[': ']', '{': '}'}
         for char in tokenMap.keys():
-            if LineHelpers.countRealCharacter(text, char) > LineHelpers.countRealCharacter(text, tokenMap[char]):
+            if (LineHelpers.countRealCharacter(text, char) > 
+                LineHelpers.countRealCharacter(text, tokenMap[char])):
                 return True
         return False
 
