@@ -22,11 +22,11 @@ class TestBlockMethods(unittest.TestCase):
 
     def testGetLength(self):
         block = CodeBlock(7, 'while')
-        block.addLine(CodeLine('test line 1', 8))
-        block.addLine(CodeLine('test line 2', 9))
+        block.addLine(CodeLine('test line 1', 8, 0))
+        block.addLine(CodeLine('test line 2', 9, 0))
         childBlock = CodeBlock(10, 'if')
-        childBlock.addLine(CodeLine('child test line 1', 11))
-        childBlock.addLine(CodeLine('child test line 2', 12))
+        childBlock.addLine(CodeLine('child test line 1', 11, 0))
+        childBlock.addLine(CodeLine('child test line 2', 12, 0))
         block.addChildBlock(childBlock)
         self.assertEqual(block.getLength(), 4)
     

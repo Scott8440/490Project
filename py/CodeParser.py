@@ -15,8 +15,6 @@ class CodeParser:
             self.numLines = len(self.lines)
         self.logicalLines = self.removeEscapeNewlines()
         self.codedLines = self.codifyLines()
-        for i in self.codedLines:
-            i.printLine()
         self.currentCodedLineIndex = 0
 
     def getCodedLine(self):
@@ -39,10 +37,7 @@ class CodeParser:
         while line:
             text = line.line
             if self.lineStartsBlock(line):
-                print("new block: {}".format(text.strip()))
                 newBlock = self.parseBlock(line)
-                newBlock.printSelf()
-                print("index after block: {}".format(self.currentCodedLineIndex))
                 if isinstance(newBlock, CodeFunction):
                     codeFile.addFunction(newBlock)
                 elif isinstance(newBlock, CodeClass):
@@ -51,7 +46,6 @@ class CodeParser:
                     codeFile.addChildBlock(newBlock)
             else:
                 codeFile.addLine(line)
-                print("parse file line: {}".format(text.strip()))
             line = self.getCodedLine()
         return codeFile
 
@@ -61,7 +55,6 @@ class CodeParser:
         baseIndentation = line.indentation
         blockType = self.determineBlockType(text)
         block = CodeBlock(startLineNumber)
-        print("parsing {} block".format(blockType))
 
         if (blockType == 'def'):
             name = self.parseFunctionName(text)

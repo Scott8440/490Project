@@ -32,7 +32,7 @@ class TestLineHelpers(unittest.TestCase):
 
         line6 = r'""" multiline string """'
         newLine = LineHelpers.removeStrings(line6)
-        self.assertEqual(newLine, line6)
+        self.assertEqual(newLine, '')
 
         line7 = r'""" multiline start'
         newLine = LineHelpers.removeStrings(line7)
