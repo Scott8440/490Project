@@ -12,11 +12,7 @@ codeFile = parser.parseFile()
 
 print("=== CLASSES:")
 for i in codeFile.classes:
-    print(i)
-    for j in i.lines:
-        print("  {}".format(j.line.rstrip()))
-    for j in i.memberFunctions:
-        j.printSelf(level=2)
+    i.printSelf()
 
 print("=== FUNCTIONS:")
 for i in codeFile.functions:

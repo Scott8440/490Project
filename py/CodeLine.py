@@ -24,7 +24,7 @@ class CodeLine:
             newLine = self.removeString()
         elif (self.lineType == LineTypes.STARTS__SINGLE_MULTILINE_STRING 
               or self.lineType == LineTypes.STARTS_DOUBLE_MULTILINE_STRING
-              or self.lineType == LineTypes.ENDS_SINGLE__MULTILINE_STRING
+              or self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING
               or self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING):
             newLine = self.removeMultilineString()
         else:
@@ -45,11 +45,11 @@ class CodeLine:
             text = self.line
         if self.lineType == LineTypes.STARTS_DOUBLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=True, token='"""')
-        elif self.lineType == LineTypes.STARTS__SINGLE_MULTILINE_STRING:
+        elif self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=True, token="'''")
         elif self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=False, token='"""')
-        elif self.lineType == LineTypes.ENDS_SINGLE__MULTILINE_STRING:
+        elif self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=False, token="'''")
         else:
             return text

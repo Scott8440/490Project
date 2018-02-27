@@ -8,6 +8,9 @@ class CodeBlock:
         self.condition = None
         self.lineNumber=lineNumber
 
+    def setType(self, blockType):
+        self.blockType = blockType
+
     def addLine(self, line):
         self.lines.append(line)
         for var in line.extractVariables(): # Add variables as lines are added

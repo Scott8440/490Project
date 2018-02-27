@@ -13,6 +13,12 @@ class CodeFile:
     def addChildBlock(self, block):
         self.blocks.append(block)
 
+    def addFunction(self, block):
+        self.functions.append(block)
+
+    def addClass(self, block):
+        self.classes.append(block)
+
     def parseFile(self, filename):
        codeParser = CodeParser()
        with open(filename) as f:
