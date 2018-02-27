@@ -149,7 +149,8 @@ class CodeParser:
 
     def parseClassName(self, text):
         text = text.strip()
-        nameStart = text.find('class ') + 6 #TODO: Remove magic number
+        token = 'class '
+        nameStart = text.find(token) + len(token)
         nameEnd = 0
         if '(' in text:
             nameEnd = text.find('(')
@@ -158,7 +159,8 @@ class CodeParser:
         return text[nameStart: nameEnd]
 
     def parseFunctionName(self, text):
-        nameStart = text.find('def ') + 4 #TODO: Get rid of this magic number
+        token = 'def '
+        nameStart = text.find(token) + len(token)
         nameEnd = text.find('(')
         return text[nameStart: nameEnd]
 
@@ -183,12 +185,23 @@ class CodeParser:
         return args
 
     def countIndentation(self, text):
+        # See https://docs.python.org/3/reference/lexical_analysis.html
+        # section 2.1.8 Indentation for algorithm explanation
         lineSpace = ''
         if text[0].isspace():
             spaceEnd = 0
             while spaceEnd < len(text) and text[spaceEnd].isspace():
-                spaceEnd += 1
-            lineSpace = text[:spaceEnd].replace('\t', '    ') #TODO: Will this work if the tablength isn't 4?
+                if text[spaceEnd] == '\t':
+                    spacesPerTab = 0
+                    for i in range(8):
+                        if spaceEnd + i % 8 == 0:
+                            spacesPerTab = i
+                            break
+                    text.replace('\t', ' '*spacesPerTab, 1)
+                    spaceEnd += spacesPerTab
+                else:
+                    spaceEnd += 1
+            lineSpace = text[:spaceEnd]
         return len(lineSpace)
 
     def shouldIgnoreLine(self, text):
