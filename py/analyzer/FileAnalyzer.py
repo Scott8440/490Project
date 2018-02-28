@@ -1,32 +1,33 @@
 from py.CodeFile import CodeFile
-from py.CodeFunction import CodeFunction
-from py.CodeClass import CodeClass
-from py.CodeBlock import CodeBlock
-from py.CodeLine import CodeLine
+from py.analyzer.ClassAnalyzer import ClassAnalyzer
+from py.analyzer.CodeAnalyzer import CodeAnalyzer
+from py.analyzer.FunctionAnalyzer import FunctionAnalyzer
+from py.analyzer.BlockAnalyzer import BlockAnalyzer
+from py.analyzer.LineAnalyzer import LineAnalyzer
 
-
-class FileAnalyzer:
+class FileAnalyzer(CodeAnalyzer):
 
     def __init__(self, codeFile):
+        CodeAnalyzer.__init__(self)
         self.codeFile = codeFile
 
-    def countFunctions(self):
-        return len(codeFile.functions)
+    def analyzeFile(self):
+        for codeClass in self.codeFile.classes:
+            classAnalyzer = ClassAnalyzer(codeClass)
+            classAnalyzer.analyzeClass()
+            self.gatherAlerts(classAnalyzer)
 
-    def countBlocks(self):
-        return len(codeFile.blocks)
+        for codeFunction in self.codeFile.functions:
+            functionAnalyzer = FunctionAnalyzer(codeFunction)
+            functionAnalyzer.analyzeFunction()
+            self.gatherAlerts(functionAnalyzer)
 
-    def countClasses(self):
-        return len(codeFile.classes)
+        for codeBlock in self.codeFile.blocks:
+            blockAnalyzer = BlockAnalyzer(codeBlock)
+            blockAnalyzer.analyzeBlock()
+            self.gatherAlerts(blockAnalyzer)
 
-    def getFunctionNames(self):
-        names = []
-        for i in codeFile.functions:
-            names.append(i.name)
-        return names
-
-    def getClassNames(self):
-        names = []
-        for i in codeFile.classes:
-            names.append(i.name)
-        return names
+        for codeLine in self.codeFile.lines:
+            lineAnalyzer = LineAnalyzer(codeLine)
+            lineAnalyzer.analyzeLine()
+            self.gatherAlerts(lineAnalyzer)
