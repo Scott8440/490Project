@@ -49,6 +49,7 @@ class CodeParser:
         baseIndentation = line.indentation
         blockType = self.determineBlockType(text)
         block = CodeBlock(startLineNumber)
+        #TODO: Add condition as a line object maybe
 
         if (blockType == 'def'):
             name = self.parseFunctionName(text)
