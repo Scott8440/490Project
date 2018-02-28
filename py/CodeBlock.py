@@ -2,11 +2,11 @@ class CodeBlock:
 
     def __init__(self, lineNumber, blockType=None):
         self.blockType = blockType
-        self.variables = set() 
+        self.variables = set()
         self.lines = []
         self.childrenBlocks = []
         self.condition = None
-        self.lineNumber=lineNumber
+        self.lineNumber = lineNumber
 
     def setType(self, blockType):
         self.blockType = blockType
@@ -27,9 +27,15 @@ class CodeBlock:
             length += block.getLength()
         return length
 
+    def getAllVariables(self):
+        allVars = self.variables
+        for block in self.childrenBlocks:
+            allVars = allVars.union(block.getAllVariables())
+        return allVars
+
     def printSelf(self, level=1):
         indent = "  "*level
-        print("{}{}<{} Block>: {}".format(self.lineNumber,indent, self.blockType, self.getLength()))
+        print("{}{}<{} Block>: {}".format(self.lineNumber, indent, self.blockType, self.getLength()))
         print("{}    Block Vars: {}".format(indent, self.variables))
         if self.lines:
             for j in self.lines:
