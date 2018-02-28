@@ -37,13 +37,7 @@ class CodeParser:
         while line:
             text = line.line
             if self.lineStartsBlock(line):
-                newBlock = self.parseBlock(line)
-                if isinstance(newBlock, CodeFunction):
-                    codeFile.addFunction(newBlock)
-                elif isinstance(newBlock, CodeClass):
-                    codeFile.addClass(newBlock)
-                else:
-                    codeFile.addChildBlock(newBlock)
+                codeFile.addChildBlock(self.parseBlock(line))
             else:
                 codeFile.addLine(line)
             line = self.getCodedLine()
@@ -96,10 +90,10 @@ class CodeParser:
         return block
 
     def buildBlock(self, baseIndentation, block):
-        # takes the index of the first line after the block definition
+        # starts on the first line after the block definition
         # then continues through the file until the indentation is less than
-        # the base indentation. If a new block is defined, it recursively parses
-        # the block and adds it as a child
+        # the base indentation. If a new block is defined within this block, 
+        # it recursively parses the block and adds it as a child
 
         line = self.getCodedLine()
         while line != None and (line.indentation == None or line.indentation > baseIndentation):

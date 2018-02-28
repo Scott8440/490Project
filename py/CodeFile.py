@@ -1,3 +1,7 @@
+from py.CodeFunction import CodeFunction
+from py.CodeClass import CodeClass
+
+
 class CodeFile:
 
     def __init__(self):
@@ -7,14 +11,13 @@ class CodeFile:
         self.blocks = []
         self.lines = []
 
+    def addChildBlock(self, block):
+        if isinstance(block, CodeFunction):
+            self.functions.append(block)
+        elif isinstance(block, CodeClass):
+            self.classes.append(block)
+        else:
+            self.blocks.append(block)
+
     def addLine(self, line):
         self.lines.append(line)
-
-    def addChildBlock(self, block):
-        self.blocks.append(block)
-
-    def addFunction(self, block):
-        self.functions.append(block)
-
-    def addClass(self, block):
-        self.classes.append(block)
