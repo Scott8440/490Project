@@ -51,7 +51,7 @@ project.
 Deliverables
 ============
 
-Internal Representation of Code {#internal-representation-of-code .unnumbered}
+Internal Representation of Code
 -------------------------------
 
 The first challenge that will need to be faced is the task of converting
