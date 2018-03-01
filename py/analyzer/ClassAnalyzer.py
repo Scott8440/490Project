@@ -11,18 +11,20 @@ class ClassAnalyzer(CodeAnalyzer):
         self.codeClass = codeClass
 
     def analyzeClass(self):
+        print("analyzing class")
         for codeFunction in self.codeClass.functions:
-            functionAnalyzer = FunctionAnalyzer(codeFunction)
+            print("Function: {}".format(codeFunction.name))
+            functionAnalyzer = FunctionAnalyzer(codeFunction, parameters=self.params)
             functionAnalyzer.analyzeFunction()
             self.gatherAlerts(functionAnalyzer)
 
         for codeBlock in self.codeClass.childrenBlocks:
-            blockAnalyzer = BlockAnalyzer(codeBlock)
+            blockAnalyzer = BlockAnalyzer(codeBlock, parameters=self.params)
             blockAnalyzer.analyzeBlock()
             self.gatherAlerts(blockAnalyzer)
 
         for codeLine in self.codeClass.lines:
-            lineAnalyzer = LineAnalyzer(codeLine)
+            lineAnalyzer = LineAnalyzer(codeLine, parameters=self.params)
             lineAnalyzer.analyzeLine()
             self.gatherAlerts(lineAnalyzer)
 

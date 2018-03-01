@@ -1,7 +1,6 @@
-from py.CodeFunction import CodeFunction
-from py.CodeLine import CodeLine
-from py.CodeBlock import CodeBlock
 from py.analyzer.CodeAnalyzer import CodeAnalyzer
+from py.analyzer.LineAnalyzer import LineAnalyzer
+from py.analyzer.BlockAnalyzer import BlockAnalyzer
 
 
 class FunctionAnalyzer(CodeAnalyzer):
@@ -11,22 +10,17 @@ class FunctionAnalyzer(CodeAnalyzer):
         self.function = codeFunction
 
     def analyzeFunction(self):
-        pass
+        for codeBlock in self.function.childrenBlocks:
+            blockAnalyzer = BlockAnalyzer(codeBlock, parameters=self.params)
+            blockAnalyzer.analyzeBlock()
+            self.gatherAlerts(blockAnalyzer)
 
-    def countArgs(self):
-        return len(self.function.args)
-
-    def countBlocks(self):
-        return len(self.function.blocks)
-
-    def countTopLevelLines(self):
-        return len(self.function.lines)
-
-    def countTotalLines(self):
-        return self.function.getLength()
-
-    def getTopLevelVariables(self):
-        return self.function.variables
+        for codeLine in self.function.lines:
+            lineAnalyzer = LineAnalyzer(codeLine, parameters=self.params)
+            lineAnalyzer.analyzeLine()
+            self.gatherAlerts(lineAnalyzer)
+        allVars = self.getAllVariables()
 
     def getAllVariables(self):
+        print(self.function.getAllVariables())
         return self.function.getAllVariables()

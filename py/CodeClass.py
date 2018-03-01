@@ -1,5 +1,5 @@
 from py.CodeBlock import CodeBlock
-
+from py.CodeFunction import CodeFunction
 
 
 class CodeClass(CodeBlock):
@@ -9,6 +9,15 @@ class CodeClass(CodeBlock):
         self.name = name 
         self.parents = classParents
         self.functions = []
+
+    def addChildBlock(self, block):
+        if isinstance(block, CodeFunction):
+            self.addFunction(block)
+        else:
+            self.addChildBlock(block)
+
+    def addFunction(self, function):
+        self.functions.append(function)
 
     def printSelf(self, level=1):
         indent = "  "*level

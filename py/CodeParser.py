@@ -44,12 +44,12 @@ class CodeParser:
             line = self.getCodedLine()
         return codeFile
 
-    def parseBlock(self, line):
+    def parseBlock(self, line, parentBlock=None):
         text = line.line
         startLineNumber = line.lineNumber
         baseIndentation = line.indentation
         blockType = self.determineBlockType(text)
-        block = CodeBlock(startLineNumber)
+        block = CodeBlock(startLineNumber, parentBlock=parentBlock)
         #TODO: Add condition as a line object maybe
 
         if (blockType == 'def'):
@@ -101,7 +101,7 @@ class CodeParser:
         while line != None and (line.indentation == None or line.indentation > baseIndentation):
             text = line.line
             if self.lineStartsBlock(line):
-                childBlock = self.parseBlock(line)
+                childBlock = self.parseBlock(line, parentBlock=block)
                 block.addChildBlock(childBlock)
             else:
                 block.addLine(line)

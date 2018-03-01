@@ -29,7 +29,9 @@ class CodeLine:
             newLine = self.removeMultilineString()
         else:
             return []
-        matches = re.findall(r"(([a-zA-Z_])\w*)([ \t])*=", newLine)
+        matches = re.findall(r"((self\.)?[a-zA-Z_]\w*)[ \t]*=", newLine)
+        print(matches)
+        # matches = re.findall(r"(([a-zA-Z_])\w*)([ \t])*=", newLine)
         variables = [match[0] for match in matches]
         return variables
 

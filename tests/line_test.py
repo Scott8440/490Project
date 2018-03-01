@@ -20,6 +20,13 @@ class TestLineMethods(unittest.TestCase):
         self.assertEqual(len(variables), 1)
         self.assertEqual(variables[0], "var")
 
+    def testComplicatedVariableParsing(self):
+        string = "self.x = x"
+        line = CodeLine(string, self.lineNumber, self.indentation)
+        variables = line.extractVariables()
+        self.assertEqual(len(variables), 1)
+        self.assertEqual(variables[0], "self.x")
+
     def testNoParseVariableInStringType(self):
         string = "var = 2" # Assume this has been parsed as a part of a multiline string
         line = CodeLine(string, self.lineNumber, self.indentation, LineTypes.CONTINUES_MULTILINE_STRING)

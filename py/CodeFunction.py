@@ -10,7 +10,9 @@ class CodeFunction(CodeBlock):
             equals = arg.find('=')
             if equals != -1:
                 arg = arg[:arg.find('=')] # Removes value after keyword argument
-            self.variables.add((arg, lineNumber))
+            # self.variables.add((arg, lineNumber))
+            if arg not in self.variables.keys():
+                self.variables[arg] = lineNumber
 
     def printSelf(self, level=1):
         indent = "  "*level

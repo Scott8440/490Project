@@ -15,22 +15,22 @@ class FileAnalyzer(CodeAnalyzer):
 
     def analyzeFile(self):
         for codeClass in self.codeFile.classes:
-            classAnalyzer = ClassAnalyzer(codeClass)
+            classAnalyzer = ClassAnalyzer(codeClass, parameters=self.params)
             classAnalyzer.analyzeClass()
             self.gatherAlerts(classAnalyzer)
 
         for codeFunction in self.codeFile.functions:
-            functionAnalyzer = FunctionAnalyzer(codeFunction)
+            functionAnalyzer = FunctionAnalyzer(codeFunction, parameters=self.params)
             functionAnalyzer.analyzeFunction()
             self.gatherAlerts(functionAnalyzer)
 
         for codeBlock in self.codeFile.blocks:
-            blockAnalyzer = BlockAnalyzer(codeBlock)
+            blockAnalyzer = BlockAnalyzer(codeBlock, parameters=self.params)
             blockAnalyzer.analyzeBlock()
             self.gatherAlerts(blockAnalyzer)
 
         for codeLine in self.codeFile.lines:
-            lineAnalyzer = LineAnalyzer(codeLine)
+            lineAnalyzer = LineAnalyzer(codeLine, parameters=self.params)
             lineAnalyzer.analyzeLine()
             self.gatherAlerts(lineAnalyzer)
 
