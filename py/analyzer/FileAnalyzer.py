@@ -4,6 +4,8 @@ from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.FunctionAnalyzer import FunctionAnalyzer
 from py.analyzer.BlockAnalyzer import BlockAnalyzer
 from py.analyzer.LineAnalyzer import LineAnalyzer
+from py.analyzer.MagicNumberAlert import MagicNumberAlert
+from py.analyzer.MultiMagicNumberAlert import MultiMagicNumberAlert
 
 class FileAnalyzer(CodeAnalyzer):
 
@@ -31,3 +33,24 @@ class FileAnalyzer(CodeAnalyzer):
             lineAnalyzer = LineAnalyzer(codeLine)
             lineAnalyzer.analyzeLine()
             self.gatherAlerts(lineAnalyzer)
+
+        self.consolidateMagicNumberAlerts()
+
+    def consolidateMagicNumberAlerts(self):
+        numberToAlerts = {}
+        i = 0
+        while i < len(self.alerts):
+            alert = self.alerts[i]
+            if isinstance(alert, MagicNumberAlert):
+                del self.alerts[i]
+                if alert.number in numberToAlerts.keys():
+                    numberToAlerts[alert.number].append(alert)
+                else:
+                    numberToAlerts[alert.number] = [alert]
+            else:
+                i += 1
+        for key in numberToAlerts.keys():
+            if len(numberToAlerts[key]) > 1:
+                self.addAlert(MultiMagicNumberAlert(numberToAlerts[key]))
+            else:
+                self.addAlert(numberToAlerts[key][0])
