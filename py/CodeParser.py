@@ -132,9 +132,9 @@ class CodeParser:
     def parseCondition(self, line):
         endLine = 0
         conLine = line.line
-        if ':' not in line.removeStrings():
+        if ':' not in line.stripLine():
             line = self.getCodedLine()
-            while line and ':' not in line.removeStrings():
+            while line and ':' not in line.stripLine():
                 conLine = conLine.join(line.line)
                 line = self.getCodedLine()
             conLine = conLine.join(line.line)
@@ -210,7 +210,7 @@ class CodeParser:
         #TODO: Abstract out into another class which will help with multi-language parsing?
         # i.e. Have a class that stores the block words, reserved words, etc. for each language
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
-        text = line.removeStrings()
+        text = line.stripLine()
         if text:
             wordMatches = re.findall(r"[\w']+", text)
             if not wordMatches:

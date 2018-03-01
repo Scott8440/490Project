@@ -52,5 +52,34 @@ class TestLineHelpers(unittest.TestCase):
         correctLine = "this \nnext line"
         self.assertEqual(newLine, correctLine)
 
+    def testRemoveComment(self):
+        line1 = "this line has no comment"
+        newLine = LineHelpers.removeComment(line1)
+        self.assertEqual(newLine, line1)
+
+        line2 = "this line has a # comment"
+        newLine = LineHelpers.removeComment(line2)
+        correctLine = "this line has a "
+        self.assertEqual(newLine, correctLine)
+
+        line3 = "this line has a 'string' and # comment"
+        newLine = LineHelpers.removeComment(line3)
+        correctLine = "this line has a 'string' and "
+        self.assertEqual(newLine, correctLine)
+
+        line4 = "this line has a 'string with a # character'"
+        newLine = LineHelpers.removeComment(line4)
+        self.assertEqual(newLine, line4)
+
+        line5 = "this line has a 'string # char' and # comment"
+        newLine = LineHelpers.removeComment(line5)
+        correctLine = "this line has a 'string # char' and "
+        self.assertEqual(newLine, correctLine)
+
+        line6 = "# only a comment"
+        newLine = LineHelpers.removeComment(line6)
+        correctLine = ""
+        self.assertEqual(newLine, correctLine)
+
 if __name__ == '__main__':
     unittest.main()

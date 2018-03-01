@@ -1,5 +1,16 @@
 import re
 
+def stripLine(line):
+    return removeStrings(removeComment(line))
+
+def removeComment(line):
+    noStrings = removeStrings(line)
+    commentLocation = noStrings.find("#") 
+    if commentLocation > -1:
+        commentLocation += len(line) - len(noStrings)
+        return line[0:commentLocation]
+    return line
+
 def removeStrings(line):
     # Removes the strings in a single-line line. Multiline strings dealt with in other function
     stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)('|\\$))|(\"(?!\"\")(?!\")(?<!\"\").*?(?<!\\)(\"|\\$))"

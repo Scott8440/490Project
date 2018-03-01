@@ -33,6 +33,11 @@ class CodeLine:
         variables = [match[0] for match in matches]
         return variables
 
+    def stripLine(self):
+        noStrings = self.removeStrings()
+        noComment = LineHelpers.removeComment(noStrings)
+        return noComment 
+
     def removeStrings(self):
         # Removes the strings in a single-line line. Multiline strings dealt with in other function
         if self.lineType == LineTypes.CONTINUES_MULTILINE_STRING:
