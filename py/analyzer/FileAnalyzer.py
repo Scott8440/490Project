@@ -54,3 +54,7 @@ class FileAnalyzer(CodeAnalyzer):
                 self.addAlert(MultiMagicNumberAlert(numberToAlerts[key]))
             else:
                 self.addAlert(numberToAlerts[key][0])
+
+    def printAlerts(self):
+        print("File: '{}' has {} warnings".format(self.codeFile.filename, len(self.alerts)))
+        CodeAnalyzer.printAlerts(self)

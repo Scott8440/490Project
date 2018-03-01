@@ -4,8 +4,8 @@ from py.CodeClass import CodeClass
 
 class CodeFile:
 
-    def __init__(self):
-        self.filename = ''
+    def __init__(self, filename=''):
+        self.filename = filename 
         self.functions = []
         self.classes = []
         self.blocks = []

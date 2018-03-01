@@ -16,6 +16,7 @@ class CodeParser:
         self.logicalLines = self.removeEscapeNewlines()
         self.codedLines = self.codifyLines()
         self.currentCodedLineIndex = 0
+        self.filename = filename
 
     def getCodedLine(self):
         if self.currentCodedLineIndex < len(self.codedLines):
@@ -32,7 +33,7 @@ class CodeParser:
         self.currentCodedLineIndex -= 1
 
     def parseFile(self):
-        codeFile = CodeFile()
+        codeFile = CodeFile(filename=self.filename)
         line = self.getCodedLine()
         while line:
             text = line.line
