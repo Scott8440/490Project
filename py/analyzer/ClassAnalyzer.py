@@ -32,6 +32,9 @@ class ClassAnalyzer(CodeAnalyzer):
     def analyzeClassCohesion(self):
         if len(self.codeClass.functions) < self.params.minNumberClassFunctionsForCohesionAnalysis:
             return
+        self.calculateClassCohesion()
+
+    def calculateClassCohesion(self):
         functionAccessRatios = self.getFunctionAccessRatios()
         noAccessFunctions = []
         for function in functionAccessRatios:
@@ -39,16 +42,16 @@ class ClassAnalyzer(CodeAnalyzer):
                 noAccessFunctions.append(function[0])
         if len(noAccessFunctions)/len(self.codeClass.functions) > self.params.classCohesionLimit:
             self.addAlert(ClassCohesionAlert(self.codeClass.name, noAccessFunctions, self.codeClass.lineNumber))
-        
+       
     def getFunctionAccessRatios(self):
         functionAccessRatios = []
         for function in self.codeClass.functions:
-            accessedMemberVars = function.getAccessedMemberVariables()
+            accessedMemberVars = function.getAccessedAttributes(self.codeClass.memberVariables)
             accessedFunctions = function.getAccessedAttributes(self.codeClass.getFunctionNames())
             for subFunctionName in accessedFunctions:
                 if subFunctionName != function.name:
                     subFunction = self.codeClass.getFunction(subFunctionName)
-                    subAccessedVars = subFunction.getAccessedMemberVariables()
+                    subAccessedVars = subFunction.getAccessedAttributes(self.codeClass.memberVariables)
                     accessedMemberVars.update(subAccessedVars)
             ratio = len(accessedMemberVars)/len(self.codeClass.memberVariables)
             functionAccessRatios.append((function.name,ratio))

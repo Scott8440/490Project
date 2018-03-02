@@ -13,17 +13,6 @@ class CodeFunction(CodeBlock):
             if arg not in self.variables.keys():
                 self.variables[arg] = lineNumber
 
-    def getAccessedMemberVariables(self):
-        if not (self.parentBlock and self.parentBlock.memberVariables):
-            return [] 
-        accessedMemberVariables = set()
-        for line in self.getAllLines():
-            accessedVars = line.getAccessedVariables(self.parentBlock.memberVariables)
-            for var in accessedVars:
-                if var in self.parentBlock.memberVariables:
-                    accessedMemberVariables.add(var)
-        return accessedMemberVariables
-
     def getAccessedAttributes(self, attributeNames):
         accessedAttributes = set()
         for line in self.getAllLines():
