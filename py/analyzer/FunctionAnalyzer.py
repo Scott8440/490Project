@@ -19,8 +19,3 @@ class FunctionAnalyzer(CodeAnalyzer):
             lineAnalyzer = LineAnalyzer(codeLine, parameters=self.params)
             lineAnalyzer.analyzeLine()
             self.gatherAlerts(lineAnalyzer)
-        allVars = self.getAllVariables()
-
-    def getAllVariables(self):
-        print(self.function.getAllVariables())
-        return self.function.getAllVariables()

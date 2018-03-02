@@ -2,6 +2,7 @@ from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.LineAnalyzer import LineAnalyzer
 from py.analyzer.MagicNumberAlert import MagicNumberAlert
 from py.analyzer.VariableNameLengthAlert import VariableNameLengthAlert
+from py.analyzer.ConditionComplexityAlert import ConditionComplexityAlert
 import py.analyzer.AnalysisUtilities as utils
 
 
@@ -22,6 +23,20 @@ class BlockAnalyzer(CodeAnalyzer):
         self.analyzeVariables()
 
     def analyzeCondition(self):
+        self.checkConditionForMagicNumbers()
+        self.checkConditionComplexity()
+
+    def checkConditionComplexity(self):
+        condition = self.block.condition
+        keywords = self.params.conditionalKeywords
+        keywordCount = 0
+        for word in keywords:
+            keywordCount += condition.count(word)
+        if keywordCount > self.params.conditionalComplexityLimit:
+            self.addAlert(ConditionComplexityAlert(condition, self.block.lineNumber))
+
+
+    def checkConditionForMagicNumbers(self):
         if not self.block.condition:
             return 
         magicNumbers = utils.extractMagicNumbers(self.block.condition)

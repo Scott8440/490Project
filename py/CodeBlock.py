@@ -2,7 +2,7 @@ class CodeBlock:
 
     def __init__(self, lineNumber, parentBlock=None, blockType=None):
         self.blockType = blockType
-        self.variables = {} 
+        self.variables = {} # Map variable name to line it was defined on
         self.lines = []
         self.childrenBlocks = []
         self.condition = None
@@ -11,14 +11,12 @@ class CodeBlock:
         if parentBlock:
             self.parentBlock = parentBlock
 
-
     def setType(self, blockType):
         self.blockType = blockType
 
     def addLine(self, line):
         self.lines.append(line)
         for var in line.extractVariables(): # Add variables as lines are added
-            # self.variables.add((var, line.lineNumber))
             if (var not in self.variables.keys() and
                 (not self.parentBlock or var not in self.parentBlock.variables.keys())):
                 self.variables[var] = line.lineNumber
@@ -35,9 +33,14 @@ class CodeBlock:
     def getAllVariables(self):
         allVars = self.variables
         for block in self.childrenBlocks:
-            # allVars = allVars.union(block.getAllVariables())
             allVars = {**allVars, **block.getAllVariables()}
         return allVars
+
+    def getAllLines(self):
+        lines = self.lines
+        for block in self.childrenBlocks:
+            lines += block.getAllLines()
+        return lines
 
     def printSelf(self, level=1):
         indent = "  "*level

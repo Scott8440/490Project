@@ -2,6 +2,7 @@ from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.FunctionAnalyzer import FunctionAnalyzer
 from py.analyzer.BlockAnalyzer import BlockAnalyzer
 from py.analyzer.LineAnalyzer import LineAnalyzer
+from py.analyzer.ClassCohesionAlert import ClassCohesionAlert
 
 
 class ClassAnalyzer(CodeAnalyzer):
@@ -11,9 +12,7 @@ class ClassAnalyzer(CodeAnalyzer):
         self.codeClass = codeClass
 
     def analyzeClass(self):
-        print("analyzing class")
         for codeFunction in self.codeClass.functions:
-            print("Function: {}".format(codeFunction.name))
             functionAnalyzer = FunctionAnalyzer(codeFunction, parameters=self.params)
             functionAnalyzer.analyzeFunction()
             self.gatherAlerts(functionAnalyzer)
@@ -27,6 +26,34 @@ class ClassAnalyzer(CodeAnalyzer):
             lineAnalyzer = LineAnalyzer(codeLine, parameters=self.params)
             lineAnalyzer.analyzeLine()
             self.gatherAlerts(lineAnalyzer)
+
+        self.analyzeClassCohesion()
+
+    def analyzeClassCohesion(self):
+        if len(self.codeClass.functions) < self.params.minNumberClassFunctionsForCohesionAnalysis:
+            return
+        functionAccessRatios = self.getFunctionAccessRatios()
+        noAccessFunctions = []
+        for function in functionAccessRatios:
+            if function[1] == 0:
+                noAccessFunctions.append(function[0])
+        if len(noAccessFunctions)/len(self.codeClass.functions) > self.params.classCohesionLimit:
+            self.addAlert(ClassCohesionAlert(self.codeClass.name, noAccessFunctions, self.codeClass.lineNumber))
+        
+    def getFunctionAccessRatios(self):
+        functionAccessRatios = []
+        for function in self.codeClass.functions:
+            accessedMemberVars = function.getAccessedMemberVariables()
+            accessedFunctions = function.getAccessedAttributes(self.codeClass.getFunctionNames())
+            for subFunctionName in accessedFunctions:
+                if subFunctionName != function.name:
+                    subFunction = self.codeClass.getFunction(subFunctionName)
+                    subAccessedVars = subFunction.getAccessedMemberVariables()
+                    accessedMemberVars.update(subAccessedVars)
+            ratio = len(accessedMemberVars)/len(self.codeClass.memberVariables)
+            functionAccessRatios.append((function.name,ratio))
+        return functionAccessRatios
+
 
 
 

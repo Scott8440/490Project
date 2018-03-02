@@ -2,17 +2,34 @@ from py.CodeBlock import CodeBlock
 
 class CodeFunction(CodeBlock):
 
-    def __init__(self, name, arguments, lineNumber):
-        CodeBlock.__init__(self, lineNumber, blockType='func')
+    def __init__(self, name, arguments, lineNumber, parentBlock=None):
+        CodeBlock.__init__(self, lineNumber, blockType='func', parentBlock=parentBlock)
         self.name = name
         self.arguments = arguments
         for arg in self.arguments:
             equals = arg.find('=')
             if equals != -1:
                 arg = arg[:arg.find('=')] # Removes value after keyword argument
-            # self.variables.add((arg, lineNumber))
             if arg not in self.variables.keys():
                 self.variables[arg] = lineNumber
+
+    def getAccessedMemberVariables(self):
+        if not (self.parentBlock and self.parentBlock.memberVariables):
+            return [] 
+        accessedMemberVariables = set()
+        for line in self.getAllLines():
+            accessedVars = line.getAccessedVariables(self.parentBlock.memberVariables)
+            for var in accessedVars:
+                if var in self.parentBlock.memberVariables:
+                    accessedMemberVariables.add(var)
+        return accessedMemberVariables
+
+    def getAccessedAttributes(self, attributeNames):
+        accessedAttributes = set()
+        for line in self.getAllLines():
+            lineAttributes = line.getAccessedAttributes(attributeNames)
+            accessedAttributes.update(lineAttributes)
+        return accessedAttributes
 
     def printSelf(self, level=1):
         indent = "  "*level

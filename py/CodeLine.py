@@ -30,10 +30,25 @@ class CodeLine:
         else:
             return []
         matches = re.findall(r"((self\.)?[a-zA-Z_]\w*)[ \t]*=", newLine)
-        print(matches)
-        # matches = re.findall(r"(([a-zA-Z_])\w*)([ \t])*=", newLine)
         variables = [match[0] for match in matches]
         return variables
+
+    def getAccessedVariables(self, varList):
+        #TODO: Replace with accessedAttributes
+        strippedLine = self.stripLine()
+        accessedVars = []
+        for var in varList:
+            if var in strippedLine:
+                accessedVars.append(var)
+        return accessedVars
+
+    def getAccessedAttributes(self, attributeList):
+        strippedLine = self.stripLine()
+        accessedAttributes = []
+        for var in attributeList:
+            if var in strippedLine:
+                accessedAttributes.append(var)
+        return accessedAttributes
 
     def stripLine(self):
         noStrings = self.removeStrings()

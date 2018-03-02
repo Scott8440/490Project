@@ -55,11 +55,11 @@ class CodeParser:
         if (blockType == 'def'):
             name = self.parseFunctionName(text)
             args = self.parseFunctionArgs(line)
-            block = CodeFunction(name, args, startLineNumber)
+            block = CodeFunction(name, args, startLineNumber, parentBlock=parentBlock)
         elif (blockType == 'class'):
             name = self.parseClassName(text)
             parentClasses = self.parseFunctionArgs(line)
-            block = CodeClass(name, parentClasses, startLineNumber)
+            block = CodeClass(name, parentClasses, startLineNumber, parentBlock=parentBlock)
         elif (blockType == 'if'):
             condition = self.parseCondition(line)
             block.condition = condition
@@ -140,7 +140,7 @@ class CodeParser:
             conLine = conLine.join(line.line)
         conLine = ' '.join(conLine.split())
         condition = conLine[conLine.find(' ')+1: conLine.find(':')]
-        condition = condition.replace('(', '').replace(')', '')
+        # condition = condition.replace('(', '').replace(')', '')
         return condition
 
     def parseClassName(self, text):
