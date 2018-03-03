@@ -14,7 +14,7 @@ class LineAnalyzer(CodeAnalyzer):
         self.checkForMagicNumbers()
 
     def checkForMagicNumbers(self):
-        numberList = utils.extractMagicNumbers(self.line.line)
+        numberList = utils.extractMagicNumbers(self.line.stripLine())
         lineNumber = self.line.lineNumber
         for number in numberList:
             if number in self.params.excludedMagicNumbers:

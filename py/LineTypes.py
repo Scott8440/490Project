@@ -2,7 +2,7 @@ from enum import Enum
 
 class LineTypes(Enum):
     REGULAR = 1 
-    STARTS_SINGLE_MULTILINE_STRING = 2 # Begins a multiline string 
+    STARTS_SINGLE_MULTILINE_STRING = 2
     ENDS_SINGLE_MULTILINE_STRING = 3
     STARTS_DOUBLE_MULTILINE_STRING = 4
     ENDS_DOUBLE_MULTILINE_STRING = 5

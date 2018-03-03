@@ -70,6 +70,7 @@ class CodeLine:
         elif self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=True, token="'''")
         elif self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING:
+            removed = self.removeMultilineHelper(text, start=False, token='"""')
             return self.removeMultilineHelper(text, start=False, token='"""')
         elif self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=False, token="'''")
@@ -87,5 +88,5 @@ class CodeLine:
                 text = text[0:commentStart]
         else:
             commentEnd = text.find(token)
-            newLine = text[0:commentEnd+4]
+            text = text[commentEnd+4:]
         return text
