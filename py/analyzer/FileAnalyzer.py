@@ -56,5 +56,7 @@ class FileAnalyzer(CodeAnalyzer):
                 self.addAlert(numberToAlerts[key][0])
 
     def printAlerts(self):
+        print("=============================================")
         print("File: '{}' has {} warnings".format(self.codeFile.filename, len(self.alerts)))
+        print("=============================================")
         CodeAnalyzer.printAlerts(self)

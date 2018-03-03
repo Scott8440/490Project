@@ -44,6 +44,8 @@ class ClassAnalyzer(CodeAnalyzer):
             self.addAlert(ClassCohesionAlert(self.codeClass.name, noAccessFunctions, self.codeClass.lineNumber))
        
     def getFunctionAccessRatios(self):
+        if len(self.codeClass.memberVariables) == 0:
+            return []
         functionAccessRatios = []
         for function in self.codeClass.functions:
             accessedMemberVars = function.getAccessedAttributes(self.codeClass.memberVariables)

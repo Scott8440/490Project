@@ -131,16 +131,15 @@ class CodeParser:
 
     def parseCondition(self, line):
         endLine = 0
-        conLine = line.line
+        conLine = line.line.strip()
         if ':' not in line.stripLine():
             line = self.getCodedLine()
             while line and ':' not in line.stripLine():
-                conLine = conLine.join(line.line)
+                conLine += " " + line.line.strip()
                 line = self.getCodedLine()
-            conLine = conLine.join(line.line)
-        conLine = ' '.join(conLine.split())
+            conLine += " " + line.line.strip()
+        conLine = conLine.replace("\n", " ")
         condition = conLine[conLine.find(' ')+1: conLine.find(':')]
-        # condition = condition.replace('(', '').replace(')', '')
         return condition
 
     def parseClassName(self, text):
