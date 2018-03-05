@@ -1,4 +1,4 @@
-from py.CodeParser import CodeParser
+from py.parser.CodeParser import CodeParser
 from py.analyzer.FileAnalyzer import FileAnalyzer
 import os
 import glob

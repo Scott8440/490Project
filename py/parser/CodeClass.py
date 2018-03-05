@@ -1,5 +1,5 @@
-from py.CodeBlock import CodeBlock
-from py.CodeFunction import CodeFunction
+from py.parser.CodeBlock import CodeBlock
+from py.parser.CodeFunction import CodeFunction
 
 
 class CodeClass(CodeBlock):

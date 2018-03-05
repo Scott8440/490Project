@@ -1,11 +1,11 @@
 import re
-from py.CodeClass import CodeClass
-from py.CodeFunction import CodeFunction
-from py.CodeFile import CodeFile
-from py.CodeBlock import CodeBlock
-from py.CodeLine import CodeLine
-from py.LineTypes import LineTypes
-import py.LineHelpers as LineHelpers
+from py.parser.CodeClass import CodeClass
+from py.parser.CodeFunction import CodeFunction
+from py.parser.CodeFile import CodeFile
+from py.parser.CodeBlock import CodeBlock
+from py.parser.CodeLine import CodeLine
+from py.parser.LineTypes import LineTypes
+import py.parser.LineHelpers as LineHelpers
 
 class CodeParser:
     

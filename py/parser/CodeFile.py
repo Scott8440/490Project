@@ -1,5 +1,5 @@
-from py.CodeFunction import CodeFunction
-from py.CodeClass import CodeClass
+from py.parser.CodeFunction import CodeFunction
+from py.parser.CodeClass import CodeClass
 
 
 class CodeFile:

@@ -1,6 +1,6 @@
 import re
-import py.LineHelpers as LineHelpers
-from py.LineTypes import LineTypes
+import py.parser.LineHelpers as LineHelpers
+from py.parser.LineTypes import LineTypes
 
 
 class CodeLine:

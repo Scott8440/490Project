@@ -1,4 +1,3 @@
-from py.CodeFile import CodeFile
 from py.analyzer.ClassAnalyzer import ClassAnalyzer
 from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.FunctionAnalyzer import FunctionAnalyzer

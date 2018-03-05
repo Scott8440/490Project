@@ -1,6 +1,6 @@
 import unittest
-from py.CodeBlock import CodeBlock
-from py.CodeLine import CodeLine
+from py.parser.CodeBlock import CodeBlock
+from py.parser.CodeLine import CodeLine
 
 class TestBlockMethods(unittest.TestCase):
 
