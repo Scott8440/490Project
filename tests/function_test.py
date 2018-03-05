@@ -11,8 +11,8 @@ class TestFunctionMethods(unittest.TestCase):
         self.assertEqual(function.name, name)
         self.assertEqual(function.arguments, args)
         self.assertEqual(function.lineNumber, lineNumber)
-        argsWithLineNumbers = [('arg1', 10), ('arg2', 10), ('arg3', 10)]
-        self.assertEqual(function.variables, set(argsWithLineNumbers))
+        argsWithLineNumbers = {'arg1': 10, 'arg2': 10, 'arg3': 10}
+        self.assertEqual(function.variables, argsWithLineNumbers)
 
 if __name__ == '__main__':
     unittest.main()

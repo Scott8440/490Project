@@ -5,7 +5,7 @@ from py.CodeLine import CodeLine
 class TestBlockMethods(unittest.TestCase):
 
     def testBlockCreation(self):
-        block = CodeBlock(7, 'while')
+        block = CodeBlock(7, blockType='while')
         self.assertEqual(block.lineNumber, 7)
         self.assertEqual(block.blockType, 'while')
         self.assertEqual(block.lines, [])
@@ -14,14 +14,14 @@ class TestBlockMethods(unittest.TestCase):
 
     def testChildBlockAdd(self):
         block = CodeBlock(7, 'while')
-        childBlock = CodeBlock(10, 'if')
+        childBlock = CodeBlock(10, blockType='if')
         block.addChildBlock(childBlock)
         self.assertEqual(len(block.childrenBlocks), 1)
         self.assertEqual(block.childrenBlocks[0].lineNumber, 10)
         self.assertEqual(block.childrenBlocks[0].blockType, 'if')
 
     def testGetLength(self):
-        block = CodeBlock(7, 'while')
+        block = CodeBlock(7, blockType='while')
         block.addLine(CodeLine('test line 1', 8, 0))
         block.addLine(CodeLine('test line 2', 9, 0))
         childBlock = CodeBlock(10, 'if')

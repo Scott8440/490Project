@@ -7,9 +7,7 @@ class CodeBlock:
         self.childrenBlocks = []
         self.condition = None
         self.lineNumber = lineNumber
-        self.parentBlock = None
-        if parentBlock:
-            self.parentBlock = parentBlock
+        self.parentBlock = parentBlock
 
     def setType(self, blockType):
         self.blockType = blockType
@@ -17,9 +15,12 @@ class CodeBlock:
     def addLine(self, line):
         self.lines.append(line)
         for var in line.extractVariables(): # Add variables as lines are added
-            if (var not in self.variables.keys() and
-                (not self.parentBlock or var not in self.parentBlock.variables.keys())):
+            if self._shouldAddVariable(var):
                 self.variables[var] = line.lineNumber
+
+    def _shouldAddVariable(self, var):
+        return (var not in self.variables.keys() and
+               (not self.parentBlock or var not in self.parentBlock.variables.keys()))
 
     def addChildBlock(self, block):
         self.childrenBlocks.append(block)

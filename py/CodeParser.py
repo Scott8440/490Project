@@ -258,26 +258,9 @@ class CodeParser:
             lineNumber = self.logicalLines[lineIndex][1]
             indentation = self.countIndentation(text)
             multilineToken = self.startsMultilineComment(text)
+            # TODO: Handle multiline string and multiline segment at same time
             if multilineToken:
-                stringLength = self.getMultilineCommentLength(self.logicalLines, lineIndex)
-                startType = None
-                endType = None
-                if multilineToken == '"""':
-                    startType = LineTypes.STARTS_DOUBLE_MULTILINE_STRING
-                    endType = LineTypes.ENDS_DOUBLE_MULTILINE_STRING
-                else:
-                    startType = LineTypes.STARTS_SINGLE_MULTILINE_STRING
-                    endType = LineTypes.ENDS_SINGLE_MULTILINE_STRING
-                codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
-                for i in range(1,stringLength-1):
-                    codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
-                                      lineNumber+i, indentation,
-                                      lineType=LineTypes.CONTINUES_MULTILINE_STRING))
-                codedLines.append(CodeLine(self.logicalLines[lineIndex+stringLength-1][0],
-                                           lineNumber+stringLength-1, indentation,
-                                           lineType=endType))
-                lineIndex += stringLength
-            #TODO: Handle multiline string and multiline segment at same time
+                lineIndex = self.codifyMultilineComment(lineIndex)
             elif self.startsMultilineSegment(text):
                 segmentLength = self.parseMultilines(lineIndex, indentation)
                 for i in range(segmentLength):
@@ -290,6 +273,26 @@ class CodeParser:
                 codedLines.append(CodeLine(text, lineNumber, indentation))
                 lineIndex += 1
         return codedLines
+
+    def codifyMultilineComment(self, lineIndex):
+        stringLength = self.getMultilineCommentLength(self.logicalLines, lineIndex)
+        startType = None
+        endType = None
+        if multilineToken == '"""':
+            startType = LineTypes.STARTS_DOUBLE_MULTILINE_STRING
+            endType = LineTypes.ENDS_DOUBLE_MULTILINE_STRING
+        else:
+            startType = LineTypes.STARTS_SINGLE_MULTILINE_STRING
+            endType = LineTypes.ENDS_SINGLE_MULTILINE_STRING
+        codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
+        for i in range(1,stringLength-1):
+            codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
+                              lineNumber+i, indentation,
+                              lineType=LineTypes.CONTINUES_MULTILINE_STRING))
+        codedLines.append(CodeLine(self.logicalLines[lineIndex+stringLength-1][0],
+                                   lineNumber+stringLength-1, indentation,
+                                   lineType=endType))
+        return lineIndex + stringLength
 
     def startsMultilineComment(self, text):
         position = None
@@ -345,8 +348,7 @@ class CodeParser:
                 segmentLength += 1
                 if stack == []:
                     break
-                else:
-                    # Start parsing next line
+                else: # Start parsing next line
                     lineIndex += 1
                     line = self.logicalLines[lineIndex][0]
                     lineLength = len(line)

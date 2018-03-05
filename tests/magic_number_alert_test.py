@@ -8,7 +8,7 @@ class TestMagicNumberAlert(unittest.TestCase):
         self.assertEqual(alert.alertType, "Magic Number")
         self.assertEqual(alert.number, 23)
         self.assertEqual(alert.lineNumber, 10)
-        correctDescription = "There is a 'magic number' 23 line 10"
+        correctDescription = "There is a 'magic number' 23 on line 10"
         self.assertEqual(alert.alertDescription, correctDescription)
         correctFixText = ("You should consider setting this number to be "
                           "a named constant and replacing all occurences of "

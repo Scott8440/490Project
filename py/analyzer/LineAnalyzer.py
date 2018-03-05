@@ -17,6 +17,5 @@ class LineAnalyzer(CodeAnalyzer):
         numberList = utils.extractMagicNumbers(self.line.stripLine())
         lineNumber = self.line.lineNumber
         for number in numberList:
-            if number in self.params.excludedMagicNumbers:
-                continue
-            self.addAlert(MagicNumberAlert(number, lineNumber, lineText=self.line.line))
+            if number not in self.params.excludedMagicNumbers:
+                self.addAlert(MagicNumberAlert(number, lineNumber, lineText=self.line.line))

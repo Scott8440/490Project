@@ -22,7 +22,6 @@ def removeStrings(line):
     mutliStringMatcher = re.compile(multiStringMatcher, re.MULTILINE)
     strippedLine = re.sub(multiStringMatcher, '', strippedLine)
     
-    # stringMatcher = r"('(?!'')(?!')(?<!'').*?(?<!\\)'|\"(?!\"\")(?!\")(?<!\"\")(?!\").*?(?<!\\)\")"
     return strippedLine
     
 def removeMultilineString(line):
