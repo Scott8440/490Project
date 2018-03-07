@@ -260,7 +260,7 @@ class CodeParser:
             multilineToken = self.startsMultilineComment(text)
             # TODO: Handle multiline string and multiline segment at same time
             if multilineToken:
-                lineIndex = self.codifyMultilineComment(lineIndex)
+                lineIndex = self.codifyMultilineComment(text, lineIndex, multilineToken, codedLines)
             elif self.startsMultilineSegment(text):
                 segmentLength = self.parseMultilines(lineIndex, indentation)
                 for i in range(segmentLength):
@@ -274,7 +274,7 @@ class CodeParser:
                 lineIndex += 1
         return codedLines
 
-    def codifyMultilineComment(self, lineIndex):
+    def codifyMultilineComment(self, text, lineIndex, multilineToken, codedLines):
         stringLength = self.getMultilineCommentLength(self.logicalLines, lineIndex)
         startType = None
         endType = None
