@@ -13,7 +13,7 @@ class ClassCohesionAlert(CodeAlert):
         self.setFixText(self.writeFixText())
 
     def writeDescription(self):
-        description = "The class {} on line {} appears to be uncohesive.\n".format(self.className, self.lineNumber)
+        description = "The class {} on line {} appears to be incohesive.\n".format(self.className, self.lineNumber)
         description += "{} of the functions in this class do not access or modify a member variable.\n".format(len(self.noAccessFunctions))
         description += "these functions are: "
         for func in self.noAccessFunctions:

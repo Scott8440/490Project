@@ -20,7 +20,6 @@ class CodeClass(CodeBlock):
     def addLine(self, line):
         self.lines.append(line)
         for var in line.extractVariables(): # Add variables as lines are added
-
             if (var not in self.variables.keys() and
                 (not self.parentBlock or var not in self.parentBlock.variables.keys())):
                 self.variables[var] = line.lineNumber
