@@ -27,6 +27,7 @@ def makePath(fileName):
 
 
 if sys.argv[1]:
+    codeFile.printFile()
     fileName = sys.argv[1]
     path = makePath(fileName) 
     analyzeFile(path)

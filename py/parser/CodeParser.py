@@ -61,22 +61,22 @@ class CodeParser:
             parentClasses = self.parseFunctionArgs(line)
             block = CodeClass(name, parentClasses, startLineNumber, parentBlock=parentBlock)
         elif (blockType == 'if'):
-            condition = self.parseCondition(line)
+            condition = self.parseCondition(line, block)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'else'):
             block.blockType = blockType
             self.consumeLine()
         elif (blockType == 'elif'):
-            condition = self.parseCondition(line)
+            condition = self.parseCondition(line, block)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'for'):
-            condition = self.parseCondition(line)
+            condition = self.parseCondition(line, block)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'while'):
-            condition = self.parseCondition(line)
+            condition = self.parseCondition(line, block)
             block.condition = condition
             block.blockType = blockType
         elif (blockType == 'try'):
@@ -129,14 +129,18 @@ class CodeParser:
             end += 1
         return end - start + 1
 
-    def parseCondition(self, line):
+    def parseCondition(self, line, block):
         endLine = 0
         conLine = line.line.strip()
+        block.addLine(line)
         if ':' not in line.stripLine():
             line = self.getCodedLine()
+            block.addLine(line)
             while line and ':' not in line.stripLine():
                 conLine += " " + line.line.strip()
                 line = self.getCodedLine()
+                if line and ':' not in line.stripLine(): #TODO: Fix this thing
+                    block.addLine(line)
             conLine += " " + line.line.strip()
         conLine = conLine.replace("\n", " ")
         condition = conLine[conLine.find(' ')+1: conLine.find(':')]

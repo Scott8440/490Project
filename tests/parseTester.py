@@ -1,10 +1,10 @@
-from py.CodeParser import CodeParser
+from py.parser.CodeParser import CodeParser
 import os.path
 
 
 parentDirectory = os.path.split(os.path.dirname(__file__))[0]
 # path = 'example.py'
-path = os.path.join(parentDirectory, '..', 'py', 'CodeParser.py')
+path = os.path.join(parentDirectory, '..', 'py', 'parser', 'CodeClass.py')
 
 parser = CodeParser(path)
 

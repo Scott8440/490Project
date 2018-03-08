@@ -46,6 +46,8 @@ class CodeBlock:
     def printSelf(self, level=1):
         indent = "  "*level
         print("{}{}<{} Block>: {}".format(self.lineNumber, indent, self.blockType, self.getLength()))
+        if self.condition:
+            print("{}    Condition: {}".format(indent, self.condition))
         print("{}    Block Vars: {}".format(indent, self.variables))
         if self.lines:
             for j in self.lines:
