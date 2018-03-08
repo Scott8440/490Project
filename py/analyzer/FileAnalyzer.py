@@ -55,7 +55,8 @@ class FileAnalyzer(CodeAnalyzer):
                 self.addAlert(numberToAlerts[key][0])
 
     def printAlerts(self):
+        pluralEnding = 's' if len(self.alerts) != 1 else ''
         print("=============================================")
-        print("File: '{}' has {} warnings".format(self.codeFile.filename, len(self.alerts)))
+        print("File: '{}' has {} warning{}".format(self.codeFile.filename, len(self.alerts), pluralEnding))
         print("=============================================")
         CodeAnalyzer.printAlerts(self)

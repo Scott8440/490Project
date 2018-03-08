@@ -6,14 +6,23 @@ import glob
 import sys
 
 
-def analyzeDirectory():
-    fileList = glob.glob("*.py")
-    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+def getDirectories(baseDir):
+    dirs = []
+    for name in os.listdir(baseDir):
+        if os.path.isdir(os.path.join(baseDir, name)):
+            dirs.append(name)
+    return dirs
+
+def analyzeDirectory(path, recursive=False):
+    pythonFiles = os.path.join(path, "*.py")
+    fileList = glob.glob(pythonFiles)
     for i in fileList:
         rel_path = i
-        path = os.path.join(script_dir, rel_path)
-        analyzeFile(path)
-
+        filePath = os.path.join(script_dir, rel_path)
+        analyzeFile(filePath)
+    directories = getDirectories(path)
+    for i in directories:
+        analyzeDirectory(i, recursive=True)
 
 def analyzeFile(path):
     parser = CodeParser(path)
@@ -23,18 +32,20 @@ def analyzeFile(path):
     analyzer.printAlerts()
 
 def makePath(fileName):
-    #script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
     current_dir = os.getcwd()
     return(os.path.join(current_dir, fileName))
 
+def isValidFilename(filename):
+    return len(filename) <= 3 and filename[-3:] != ".py"
 
-print(sys.argv)
 if len(sys.argv) > 1:
-    for filename in sys.argv[1:]:
-        if len(filename) <= 3 or filename[-3:] != ".py":
-            continue
-        path = makePath(filename) 
-        analyzeFile(path)
+    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    for name in sys.argv[1:]:
+        if os.path.isdir(os.path.join(script_dir, name)):
+            analyzeDirectory(os.path.join(script_dir, name), recursive=True)
+        else:
+            path = makePath(name)
+            analyzeFile(path)
 else:
-    analyzeDirectory()
+    analyzeDirectory('parser')
 
