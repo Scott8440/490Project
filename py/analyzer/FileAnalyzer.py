@@ -8,8 +8,8 @@ from py.analyzer.MultiMagicNumberAlert import MultiMagicNumberAlert
 
 class FileAnalyzer(CodeAnalyzer):
 
-    def __init__(self, codeFile):
-        CodeAnalyzer.__init__(self)
+    def __init__(self, codeFile, parameters=None):
+        CodeAnalyzer.__init__(self, parameters=parameters)
         self.codeFile = codeFile
 
     def analyzeFile(self):

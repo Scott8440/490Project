@@ -284,6 +284,8 @@ class PythonParser(CodeParser):
         else:
             startType = LineTypes.STARTS_SINGLE_MULTILINE_STRING
             endType = LineTypes.ENDS_SINGLE_MULTILINE_STRING
+        lineNumber = self.logicalLines[lineIndex][1]
+        indentation = self.countIndentation(text)
         codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
         for i in range(1,stringLength-1):
             codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
