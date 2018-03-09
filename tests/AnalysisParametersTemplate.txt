@@ -1,0 +1,8 @@
+Excluded Magic Numbers : 0, 1
+Variable Scope Length Ratio : 1
+Conditional Keywords : and, or, ==, !=, not, >, <
+Conditional Complexity Limit : 2
+Minimum Number of Class Functions for Cohesion Analysis : 5
+Class Cohesion Limit : 0.2
+
+

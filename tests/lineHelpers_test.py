@@ -1,7 +1,8 @@
 import unittest
 import os.path
-from py.CodeLine import CodeLine, LineTypes
-import py.LineHelpers as LineHelpers
+from py.code_rep.CodeLine import CodeLine
+from py.code_rep.LineTypes import LineTypes
+import py.code_rep.LineHelpers as LineHelpers
 
 
 class TestLineHelpers(unittest.TestCase):

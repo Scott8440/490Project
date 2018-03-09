@@ -1,4 +1,4 @@
-from py.parser.CodeBlock import CodeBlock
+from py.code_rep.CodeBlock import CodeBlock
 
 class CodeFunction(CodeBlock):
 

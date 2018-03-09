@@ -1,5 +1,5 @@
 import unittest
-from py.parser.CodeFunction import CodeFunction
+from py.code_rep.CodeFunction import CodeFunction
 
 class TestFunctionMethods(unittest.TestCase):
 

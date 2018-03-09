@@ -1,4 +1,4 @@
-from py.parser.CodeParser import CodeParser
+from py.parser.PythonParser import PythonParser
 from py.analyzer.FileAnalyzer import FileAnalyzer
 import os
 import glob
@@ -15,7 +15,7 @@ def analyzeDirectory():
 
 
 def analyzeFile(path):
-    parser = CodeParser(path)
+    parser = PythonParser(path)
     codeFile = parser.parseFile()
     analyzer = FileAnalyzer(codeFile)
     analyzer.analyzeFile()

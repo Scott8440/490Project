@@ -1,4 +1,4 @@
-import py.parser.LineHelpers as LineHelpers
+import py.code_rep.LineHelpers as LineHelpers
 import re
 
 

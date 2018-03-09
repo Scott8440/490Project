@@ -1,4 +1,4 @@
-from py.parser.CodeParser import CodeParser
+from py.parser.PythonParser import PythonParser
 from py.analyzer.FileAnalyzer import FileAnalyzer
 from py.analyzer.AnalysisParameters import AnalysisParameters
 import os
@@ -16,6 +16,7 @@ def getDirectories(baseDir):
 def analyzeDirectory(path, recursive=False):
     pythonFiles = os.path.join(path, "*.py")
     fileList = glob.glob(pythonFiles)
+    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
     for i in fileList:
         rel_path = i
         filePath = os.path.join(script_dir, rel_path)
@@ -25,7 +26,7 @@ def analyzeDirectory(path, recursive=False):
         analyzeDirectory(i, recursive=True)
 
 def analyzeFile(path):
-    parser = CodeParser(path)
+    parser = PythonParser(path)
     codeFile = parser.parseFile()
     analyzer = FileAnalyzer(codeFile)
     analyzer.analyzeFile()
