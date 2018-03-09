@@ -15,7 +15,10 @@ class LineAnalyzer(CodeAnalyzer):
 
     def checkForMagicNumbers(self):
         numberList = utils.extractMagicNumbers(self.line.stripLine())
+        print(numberList)
         lineNumber = self.line.lineNumber
+        seenNumbers = []
         for number in numberList:
-            if number not in self.params.excludedMagicNumbers:
+            if number not in seenNumbers and number not in self.params.excludedMagicNumbers:
                 self.addAlert(MagicNumberAlert(number, lineNumber, lineText=self.line.line))
+                seenNumbers.append(number)

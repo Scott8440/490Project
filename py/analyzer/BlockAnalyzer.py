@@ -23,7 +23,6 @@ class BlockAnalyzer(CodeAnalyzer):
         self.analyzeVariables()
 
     def analyzeCondition(self):
-        self.checkConditionForMagicNumbers()
         self.checkConditionComplexity()
 
     def checkConditionComplexity(self):
@@ -34,16 +33,6 @@ class BlockAnalyzer(CodeAnalyzer):
             keywordCount += condition.count(word)
         if keywordCount > self.params.conditionalComplexityLimit:
             self.addAlert(ConditionComplexityAlert(condition, self.block.lineNumber))
-
-
-    def checkConditionForMagicNumbers(self):
-        if not self.block.condition:
-            return 
-        magicNumbers = utils.extractMagicNumbers(self.block.condition)
-        for number in magicNumbers:
-            if number in self.params.excludedMagicNumbers:
-                continue
-            self.addAlert(MagicNumberAlert(number, self.block.lineNumber))
 
     def analyzeVariables(self):
         blockScope = self.block.getLength()
