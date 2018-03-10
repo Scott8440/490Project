@@ -10,7 +10,7 @@ class CodeFactory:
         if filetype == 'py':
             return PythonParser(filename)
         # NOTE: This is how the factory can be expanded once more language parsers are implemented
-        # elif filtypy == 'js':
+        # elif filetypye == 'js':
         #     return JavascriptParser(filename)
         else:
             raise FileTypeError

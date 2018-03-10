@@ -8,12 +8,17 @@ from py.code_rep.LineTypes import LineTypes
 from py.parser.CodeParser import CodeParser, FileTypeError
 import py.code_rep.LineHelpers as LineHelpers
 
+
 class PythonParser(CodeParser):
     
     def __init__(self, filename):
         if filename[-3:] != '.py':
             raise FileTypeError 
         CodeParser.__init__(self, filename)
+        self.currentCodedLineIndex = 0
+        self.logicalLines = self.removeEscapeNewlines()
+        self.codedLines = self.codifyLines()
+ 
 
     def getCodedLine(self):
         if self.currentCodedLineIndex < len(self.codedLines):
