@@ -2,6 +2,7 @@ from py.parser.PythonParser import PythonParser
 from py.analyzer.FileAnalyzer import FileAnalyzer
 from py.analyzer.AnalysisParameters import AnalysisParameters
 from py.parser.CodeParser import FileTypeError
+from py.parser.CodeFactory import CodeFactory
 import os
 import glob
 import sys
@@ -23,32 +24,28 @@ def getFiles(baseDir):
     return files
 
 def analyzeDirectory(path, recursive=False, parameters=None):
-    # print("path: {}".format(path))
     pythonFiles = os.path.join(path, "*")
-    # print("python files: {}".format(pythonFiles))
     fileList = getFiles(path)
-    # print("fileList: {}".format(fileList))
     script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
     for i in fileList:
-        # print("i: {}".format(i))
         rel_path = i
         filePath = os.path.join(script_dir, rel_path)
         analyzeFile(filePath, parameters=parameters)
     if recursive:
         directories = getDirectories(path)
         for i in directories:
-            analyzeDirectory(i, recursive=recursive)
+            analyzeDirectory(i, recursive=recursive, parameters=parameters)
 
 def analyzeFile(path, parameters=None):
+    parser = CodeFactory()
     try:
-        parser = PythonParser(path)
-        codeFile = parser.parseFile()
-        analyzer = FileAnalyzer(codeFile, parameters=parameters)
-        analyzer.analyzeFile()
-        analyzer.printAlerts()
+        parser = CodeFactory.createParser(path)
     except FileTypeError:
-        # print("file {} could not be parsed".format(path))
-        pass
+        return
+    codeFile = parser.parseFile()
+    analyzer = FileAnalyzer(codeFile, parameters=parameters)
+    analyzer.analyzeFile()
+    analyzer.printAlerts()
     
 def makePath(fileName):
     current_dir = os.getcwd()
@@ -66,21 +63,16 @@ def parseArguments():
 
 def execute():
     args = parseArguments()
-    print(args)
-    print(args.params)
     parameters = AnalysisParameters()
     if args.params:
         parameters.constructFromFile(args.params)
-    if len(args.files) > 0:
-        script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
-        for filename in args.files:
-            if os.path.isdir(os.path.join(script_dir, filename)):
-                analyzeDirectory(os.path.join(script_dir, filename), recursive=args.recursive, parameters=parameters)
-            else:
-                path = makePath(filename)
-                analyzeFile(path, parameters=parameters)
-    else:
-        analyzeDirectory('parser')
+    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    for filename in args.files:
+        if os.path.isdir(os.path.join(script_dir, filename)):
+            analyzeDirectory(os.path.join(script_dir, filename), recursive=args.recursive, parameters=parameters)
+        else:
+            path = makePath(filename)
+            analyzeFile(path, parameters=parameters)
 
 
 if __name__ == '__main__':

@@ -19,22 +19,22 @@ class AnalysisParameters:
             if self.paramLineMatches('Excluded Magic Numbers', line):
                 self.excludedMagicNumbers = self.getArrayFromLine(line, valType=int)
             elif self.paramLineMatches('Variable Scope Length Ratio', line):
-                self.variableScopeLengthRatio = self.getValueFromLine(line)
+                self.variableScopeLengthRatio = self.getValueFromLine(line, valType=float)
             elif self.paramLineMatches('Conditional Keywords', line):
                 self.conditionalKeywords = self.getArrayFromLine(line)
             elif self.paramLineMatches('Conditional Complexity Limit', line):
-                self.conditionalComplexityLimit = self.getValueFromLine(line)
+                self.conditionalComplexityLimit = self.getValueFromLine(line, valType=int)
             elif self.paramLineMatches('Minimum Number of Class Functions For Cohesion Analysis', line):
-                self.minNumberClassFunctionsForCohesionAnalysis = self.getValueFromLine(line)
+                self.minNumberClassFunctionsForCohesionAnalysis = self.getValueFromLine(line, valType=int)
             elif self.paramLineMatches('Class Cohesion Limit', line):
-                self.classCohesionLimit = self.getValueFromLine(line)
+                self.classCohesionLimit = self.getValueFromLine(line, valType=float)
 
     def paramLineMatches(self, string, line):
         lineKey = line[0:line.find(':')].strip()
         return lineKey.lower() == string.lower()
 
-    def getValueFromLine(self, line):
-        lineValue = line[line.find(':')+1:].strip()
+    def getValueFromLine(self, line, valType=str):
+        lineValue = valType(line[line.find(':')+1:].strip())
         return lineValue
 
     def getArrayFromLine(self, line, valType=str):
