@@ -2,6 +2,7 @@ import unittest
 from py.code_rep.CodeBlock import CodeBlock
 from py.code_rep.CodeLine import CodeLine
 
+
 class TestBlockMethods(unittest.TestCase):
 
     def testBlockCreation(self):
@@ -29,7 +30,7 @@ class TestBlockMethods(unittest.TestCase):
         childBlock.addLine(CodeLine('child test line 2', 12, 0))
         block.addChildBlock(childBlock)
         self.assertEqual(block.getLength(), 4)
-    
+
 
 if __name__ == '__main__':
     unittest.main()
