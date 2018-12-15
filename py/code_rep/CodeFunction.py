@@ -1,4 +1,5 @@
 from py.code_rep.CodeBlock import CodeBlock
+from py.code_rep.Variable import Variable
 
 class CodeFunction(CodeBlock):
 
@@ -10,8 +11,9 @@ class CodeFunction(CodeBlock):
             equals = arg.find('=')
             if equals != -1:
                 arg = arg[:arg.find('=')] # Removes value after keyword argument
-            if arg not in self.variables.keys():
-                self.variables[arg] = lineNumber
+            var_names = [var.name for var in self.variables]
+            if arg not in var_names:
+                self.variables.append(Variable(arg, lineNumber))
 
     def getAccessedAttributes(self, attributeNames):
         accessedAttributes = set()

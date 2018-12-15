@@ -1,12 +1,13 @@
 from py.code_rep.CodeBlock import CodeBlock
 from py.code_rep.CodeFunction import CodeFunction
+from py.code_rep.Variable import Variable
 
 
 class CodeClass(CodeBlock):
 
     def __init__(self, name, classParents, lineNumber, parentBlock=None):
         CodeBlock.__init__(self, lineNumber, blockType='class', parentBlock=parentBlock)
-        self.name = name 
+        self.name = name
         self.parents = classParents
         self.functions = []
         self.memberVariables = [] # Variables which are available to entire class
@@ -19,17 +20,18 @@ class CodeClass(CodeBlock):
 
     def addLine(self, line):
         self.lines.append(line)
+        var_names = [var.name for var in self.variables]
         for var in line.extractVariables(): # Add variables as lines are added
-            if (var not in self.variables.keys() and
+            if (var not in var_names and
                 (not self.parentBlock or var not in self.parentBlock.variables.keys())):
-                self.variables[var] = line.lineNumber
+                self.variables.append(Variable(var, line.lineNumber))
             if 'self.' in var:
                 self.memberVariables.append(var)
 
     def addFunction(self, function):
         self.functions.append(function)
         for var in function.variables:
-            if 'self.' in var:
+            if 'self.' in var.name:
                 self.memberVariables.append(var)
 
     def getFunction(self, functionName):
@@ -55,4 +57,3 @@ class CodeClass(CodeBlock):
             j.printSelf(level=level+1)
         for j in self.childrenBlocks:
             j.printSelf(level=level+1)
-

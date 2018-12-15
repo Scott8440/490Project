@@ -1,11 +1,11 @@
 import unittest
-from py.CodeParser import CodeParser
-from py.CodeClass import CodeClass
-from py.CodeFunction import CodeFunction
-from py.CodeBlock import CodeBlock
-from py.CodeLine import CodeLine
-from py.LineTypes import LineTypes
-import py.LineHelpers as LineHelpers
+from py.parser.CodeFactory import CodeFactory
+from py.code_rep.CodeClass import CodeClass
+from py.code_rep.CodeFunction import CodeFunction
+from py.code_rep.CodeBlock import CodeBlock
+from py.code_rep.CodeLine import CodeLine
+from py.code_rep.LineTypes import LineTypes
+import py.code_rep.LineHelpers as LineHelpers
 
 
 class TestParser(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestParser(unittest.TestCase):
 
     def testExampleFile(self):
         path = 'example.py'
-        parser = CodeParser(path)
+        parser = CodeFactory.createParser(path)
         codeFile = parser.parseFile()
 
         # Check Functions
@@ -22,7 +22,7 @@ class TestParser(unittest.TestCase):
         func1Name = 'hello'
         func1Args = ['name']
         self.assertEqual(functions[0].name, func1Name)
-        self.assertEqual(functions[0].arguments, func1Args) 
+        self.assertEqual(functions[0].arguments, func1Args)
 
         # Check Classes
         self.assertEqual(len(codeFile.classes), 1)
@@ -35,7 +35,7 @@ class TestParser(unittest.TestCase):
 
     def testMultilineFile(self):
         path = 'multiline_test_file.py'
-        parser = CodeParser(path)
+        parser = CodeFactory.createParser(path)
         segmentLength = parser.parseMultilines(1, 1)
         self.assertEqual(segmentLength, 2)
 
@@ -53,7 +53,7 @@ class TestParser(unittest.TestCase):
 
     def testEscapeNewlineFile(self):
         path = 'escape_newline_test_file.py'
-        parser = CodeParser(path)
+        parser = CodeFactory.createParser(path)
         logicalLines = parser.removeEscapeNewlines()
         self.assertEqual(len(logicalLines), 5)
         self.assertEqual(logicalLines[0][1], 1)
@@ -62,10 +62,9 @@ class TestParser(unittest.TestCase):
         self.assertEqual(logicalLines[3][1], 5)
         self.assertEqual(logicalLines[4][1], 14)
 
-
     def testCodifyLines(self):
         path = 'multiline_test_file.py'
-        parser = CodeParser(path)
+        parser = CodeFactory.createParser(path)
         parser.logicalLines = parser.removeEscapeNewlines()
         codedLines = parser.codifyLines()
         self.assertEqual(codedLines[0].lineNumber,1) # check that line numbers are not 0-indexed
@@ -76,7 +75,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(codedLines[4].indentation, 4)
         self.assertEqual(codedLines[5].indentation, 4)
 
-        
+
         self.assertEqual(codedLines[6].indentation, 0)
         self.assertEqual(codedLines[7].indentation, 4)
         self.assertEqual(codedLines[8].indentation, 4)
@@ -85,10 +84,10 @@ class TestParser(unittest.TestCase):
 
         self.assertEqual(codedLines[18].indentation, 4)
         self.assertEqual(codedLines[18].lineType, LineTypes.STARTS_DOUBLE_MULTILINE_STRING)
-        self.assertEqual(codedLines[19].indentation, 4) 
-        self.assertEqual(codedLines[20].indentation, 4) 
+        self.assertEqual(codedLines[19].indentation, 4)
+        self.assertEqual(codedLines[20].indentation, 4)
         self.assertEqual(codedLines[19].lineType, LineTypes.CONTINUES_MULTILINE_STRING)
-        
+
         self.assertEqual(codedLines[20].lineType, LineTypes.ENDS_DOUBLE_MULTILINE_STRING)
 
 if __name__ == '__main__':

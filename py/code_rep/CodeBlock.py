@@ -1,8 +1,12 @@
+from py.code_rep.Variable import Variable
+
+
 class CodeBlock:
 
     def __init__(self, lineNumber, parentBlock=None, blockType=None):
         self.blockType = blockType
-        self.variables = {} # Map variable name to line it was defined on
+        # self.variables = {} # Map variable name to line it was defined on
+        self.variables = []
         self.lines = []
         self.childrenBlocks = []
         self.condition = None
@@ -14,13 +18,18 @@ class CodeBlock:
 
     def addLine(self, line):
         self.lines.append(line)
-        for var in line.extractVariables(): # Add variables as lines are added
-            if self._shouldAddVariable(var):
-                self.variables[var] = line.lineNumber
+        for var_name in line.extractVariables(): # Add variables as lines are added
+            if self._shouldAddVariable(var_name):
+                self.variables.append(Variable(var_name, line.lineNumber))
 
-    def _shouldAddVariable(self, var):
-        return (var not in self.variables.keys() and
-               (not self.parentBlock or var not in self.parentBlock.variables.keys()))
+    def _shouldAddVariable(self, var_name):
+        variable_names = [var.name for var in self.variables]
+        if var_name in variable_names:
+            return False
+        if self.parentBlock:
+            parent_var_names = [var.name for var in self.parentBlock.variables]
+            return var_name not in parent_var_names
+        return True
 
     def addChildBlock(self, block):
         self.childrenBlocks.append(block)
@@ -34,7 +43,7 @@ class CodeBlock:
     def getAllVariables(self):
         allVars = self.variables
         for block in self.childrenBlocks:
-            allVars = {**allVars, **block.getAllVariables()}
+            allVars.extend(block.getAllVariables())
         return allVars
 
     def getAllLines(self):
