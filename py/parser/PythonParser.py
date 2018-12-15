@@ -10,15 +10,14 @@ import py.code_rep.LineHelpers as LineHelpers
 
 
 class PythonParser(CodeParser):
-    
+
     def __init__(self, filename):
         if filename[-3:] != '.py':
-            raise FileTypeError 
+            raise FileTypeError
         CodeParser.__init__(self, filename)
         self.currentCodedLineIndex = 0
         self.logicalLines = self.removeEscapeNewlines()
         self.codedLines = self.codifyLines()
- 
 
     def getCodedLine(self):
         if self.currentCodedLineIndex < len(self.codedLines):
@@ -38,7 +37,6 @@ class PythonParser(CodeParser):
         codeFile = CodeFile(filename=self.filename)
         line = self.getCodedLine()
         while line:
-            text = line.line
             if self.lineStartsBlock(line):
                 codeFile.addChildBlock(self.parseBlock(line))
             else:
@@ -95,12 +93,11 @@ class PythonParser(CodeParser):
     def buildBlock(self, baseIndentation, block):
         # starts on the first line after the block definition
         # then continues through the file until the indentation is less than
-        # the base indentation. If a new block is defined within this block, 
+        # the base indentation. If a new block is defined within this block,
         # it recursively parses the block and adds it as a child
 
         line = self.getCodedLine()
         while line != None and (line.indentation == None or line.indentation > baseIndentation):
-            text = line.line
             if self.lineStartsBlock(line):
                 childBlock = self.parseBlock(line, parentBlock=block)
                 block.addChildBlock(childBlock)
@@ -113,7 +110,7 @@ class PythonParser(CodeParser):
 
     def determineBlockType(self, text):
         firstWord = re.findall(r"[\w']+", text.strip().split(' ')[0])[0]
-        blockType = re.sub("[^a-zA-Z]","", firstWord) #Remove non-alphabet characters
+        blockType = re.sub("[^a-zA-Z]", "", firstWord)  # Remove non-alphabet characters
         return blockType
 
     def getMultilineCommentLength(self, lines, lineIndex):
@@ -131,7 +128,6 @@ class PythonParser(CodeParser):
         return end - start + 1
 
     def parseCondition(self, line, block):
-        endLine = 0
         conLine = line.line.strip()
         block.addLine(line)
         if ':' not in line.stripLine():
@@ -140,7 +136,7 @@ class PythonParser(CodeParser):
             while line and ':' not in line.stripLine():
                 conLine += " " + line.line.strip()
                 line = self.getCodedLine()
-                if line and ':' not in line.stripLine(): #TODO: Fix this thing
+                if line and ':' not in line.stripLine():  # TODO: Fix this thing
                     block.addLine(line)
             conLine += " " + line.line.strip()
         conLine = conLine.replace("\n", " ")
@@ -178,7 +174,7 @@ class PythonParser(CodeParser):
         if linesConsumed > 0:
             argLine += line.line
         argString = argLine[argLine.find('(')+1: argLine.find(':')-1]
-        if len(argString) > 0: 
+        if len(argString) > 0:
             args = argString.split(',')
             for j in range(len(args)):
                 args[j] = args[j].strip()
@@ -211,7 +207,7 @@ class PythonParser(CodeParser):
         return self.shouldIgnoreLine(text) or (text.strip()[0] == '#')
 
     def lineStartsBlock(self, line):
-        #TODO: Abstract out into another class which will help with multi-language parsing?
+        # TODO: Abstract out into another class which will help with multi-language parsing?
         # i.e. Have a class that stores the block words, reserved words, etc. for each language
         blockWords = ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'try', 'except']
         text = line.stripLine()
@@ -220,7 +216,7 @@ class PythonParser(CodeParser):
             if not wordMatches:
                 return False
             firstWord = wordMatches[0]
-            firstWord = re.sub("[^a-zA-Z]","", firstWord)
+            firstWord = re.sub("[^a-zA-Z]", "", firstWord)
             for word in blockWords:
                 if firstWord == word:
                     return True
@@ -235,14 +231,14 @@ class PythonParser(CodeParser):
                 lineNumber += 1
             elif self.lineIsEscaped(line):
                 multilineLength = 0
-                logicalLine = "" 
+                logicalLine = ""
                 while self.lineIsEscaped(line):
-                    logicalLine += line    
-                    multilineLength +=1 
+                    logicalLine += line
+                    multilineLength += 1
                     line = self.lines[lineNumber+multilineLength]
                 logicalLine += line
                 multilineLength += 1
-                logicalLines.append((logicalLine, lineNumber+1)) # Add 1 to reflect 0-indexing
+                logicalLines.append((logicalLine, lineNumber+1))  # Add 1 to reflect 0-indexing
                 lineNumber += multilineLength
             else:
                 logicalLines.append((line, lineNumber+1))
@@ -252,8 +248,9 @@ class PythonParser(CodeParser):
     def lineIsEscaped(self, text):
         return text[-2] == '\\'
 
-    # Turn all lines into CodeLine objects. Takes care of all multiline strings/segments by assigning them
-    # the correct indentation. These lines can then be parsed into the correct blocks easily
+    # Turn all lines into CodeLine objects. Takes care of all multiline
+    # strings/segments by assigning them the correct indentation. These lines
+    # can then be parsed into the correct blocks easily
     def codifyLines(self):
         codedLines = []
         lineNumber = 0
@@ -292,7 +289,7 @@ class PythonParser(CodeParser):
         lineNumber = self.logicalLines[lineIndex][1]
         indentation = self.countIndentation(text)
         codedLines.append(CodeLine(text, lineNumber, indentation, lineType=startType))
-        for i in range(1,stringLength-1):
+        for i in range(1, stringLength-1):
             codedLines.append(CodeLine(self.logicalLines[lineIndex+i][0],
                               lineNumber+i, indentation,
                               lineType=LineTypes.CONTINUES_MULTILINE_STRING))
@@ -303,12 +300,11 @@ class PythonParser(CodeParser):
 
     def startsMultilineComment(self, text):
         position = None
-        quoteChar = None
         token = None
         if ("'''" in text):
             position = text.find("'''")
             otherQuoteChar = '"'
-            token = "'''" 
+            token = "'''"
         elif ('"""' in text):
             position = text.find('"""')
             otherQuoteChar = "'"
@@ -316,15 +312,15 @@ class PythonParser(CodeParser):
         if position is not None:
             leftLine = text[:position]
             if (('#' in leftLine) or (leftLine.count(otherQuoteChar) % 2 == 1)
-                 or text.count(token) % 2 == 0):
+               or text.count(token) % 2 == 0):
                 return False
         return token
- 
+
     def startsMultilineSegment(self, text):
         tokenMap = {'(': ')', '[': ']', '{': '}'}
         for char in tokenMap.keys():
-            if (LineHelpers.countRealCharacter(text, char) > 
-                LineHelpers.countRealCharacter(text, tokenMap[char])):
+            if (LineHelpers.countRealCharacter(text, char) >
+               LineHelpers.countRealCharacter(text, tokenMap[char])):
                 return True
         return False
 
@@ -345,7 +341,8 @@ class PythonParser(CodeParser):
             endingToken = ''
             if stack:
                 endingToken = self.getEndToken(stack[-1])
-                if stack[-1] in ['"', '\'']: # in string mode, nothing can be added to stack
+                if stack[-1] in ['"', '\'']:
+                    # in string mode, nothing can be added to stack
                     activeStarters = []
             if char in activeStarters:
                 stack.append(char)
@@ -355,12 +352,12 @@ class PythonParser(CodeParser):
                 segmentLength += 1
                 if stack == []:
                     break
-                else: # Start parsing next line
+                else:  # Start parsing next line
                     lineIndex += 1
                     line = self.logicalLines[lineIndex][0]
                     lineLength = len(line)
-                    index =0
-        return segmentLength 
+                    index = 0
+        return segmentLength
 
     def getEndToken(self, token):
         return {'\'': '\'', '"': '"', '(': ')', '[': ']', '{': '}'}[token]
