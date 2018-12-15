@@ -97,7 +97,7 @@ class PythonParser(CodeParser):
         # it recursively parses the block and adds it as a child
 
         line = self.getCodedLine()
-        while line != None and (line.indentation == None or line.indentation > baseIndentation):
+        while line is not None and (line.indentation is None or line.indentation > baseIndentation):
             if self.lineStartsBlock(line):
                 childBlock = self.parseBlock(line, parentBlock=block)
                 block.addChildBlock(childBlock)
