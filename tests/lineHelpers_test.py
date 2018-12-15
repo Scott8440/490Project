@@ -1,7 +1,4 @@
 import unittest
-import os.path
-from py.code_rep.CodeLine import CodeLine
-from py.code_rep.LineTypes import LineTypes
 import py.code_rep.LineHelpers as LineHelpers
 
 
@@ -25,7 +22,7 @@ class TestLineHelpers(unittest.TestCase):
 
         line4 = r"this 'string\' is escaped"
         newLine = LineHelpers.removeStrings(line4)
-        self.assertEqual(newLine, line4) 
+        self.assertEqual(newLine, line4)
 
         line5 = r'this "string\" is escaped'
         newLine = LineHelpers.removeStrings(line5)
@@ -81,6 +78,7 @@ class TestLineHelpers(unittest.TestCase):
         newLine = LineHelpers.removeComment(line6)
         correctLine = ""
         self.assertEqual(newLine, correctLine)
+
 
 if __name__ == '__main__':
     unittest.main()

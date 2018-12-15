@@ -1,6 +1,7 @@
 import unittest
 from py.analyzer.MagicNumberAlert import MagicNumberAlert
 
+
 class TestMagicNumberAlert(unittest.TestCase):
 
     def testAlertCreation(self):
@@ -14,6 +15,7 @@ class TestMagicNumberAlert(unittest.TestCase):
                           "a named constant and replacing all occurences of "
                           "the number with this constant.")
         self.assertEqual(alert.fixText, correctFixText)
+
 
 if __name__ == '__main__':
     unittest.main()

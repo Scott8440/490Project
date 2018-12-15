@@ -5,8 +5,9 @@ from py.LineTypes import LineTypes
 
 class TestLineMethods(unittest.TestCase):
 
-    lineNumber = 7 #Dummy lineNumber
+    lineNumber = 7 # Dummy lineNumber
     indentation = 1 # Dummy indentation
+
     def testLineCreation(self):
         string = "this is a line"
         line = CodeLine(string, self.lineNumber, self.indentation)
@@ -91,6 +92,7 @@ class TestLineMethods(unittest.TestCase):
         self.assertEqual(len(variables), 2)
         self.assertEqual(variables[0], 'multiline')
         self.assertEqual(variables[1], 'var')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,7 +7,7 @@ import sys
 
 def analyzeDirectory():
     fileList = glob.glob("*.py")
-    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    script_dir = os.path.dirname(__file__) # absolute dir the script is in
     for i in fileList:
         rel_path = i
         path = os.path.join(script_dir, rel_path)
@@ -21,19 +21,15 @@ def analyzeFile(path):
     analyzer.analyzeFile()
     analyzer.printAlerts()
 
+
 def makePath(fileName):
-    script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+    script_dir = os.path.dirname(__file__) # absolute dir the script is in
     return(os.path.join(script_dir, fileName))
 
 
 if sys.argv[1]:
-    codeFile.printFile()
     fileName = sys.argv[1]
-    path = makePath(fileName) 
+    path = makePath(fileName)
     analyzeFile(path)
 else:
     analyzeDirectory()
-
-
-
-
