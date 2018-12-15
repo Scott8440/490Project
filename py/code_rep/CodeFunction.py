@@ -10,7 +10,7 @@ class CodeFunction(CodeBlock):
         for arg in self.arguments:
             equals = arg.find('=')
             if equals != -1:
-                arg = arg[:arg.find('=')] # Removes value after keyword argument
+                arg = arg[:arg.find('=')]  # Removes value after keyword argument
             var_names = [var.name for var in self.variables]
             if arg not in var_names:
                 self.variables.append(Variable(arg, lineNumber))

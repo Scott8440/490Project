@@ -1,15 +1,18 @@
 import re
 
+
 def stripLine(line):
     return removeStrings(removeComment(line))
 
+
 def removeComment(line):
     noStrings = removeStrings(line)
-    commentLocation = noStrings.find("#") 
+    commentLocation = noStrings.find("#")
     if commentLocation > -1:
         commentLocation += len(line) - len(noStrings)
         return line[0:commentLocation]
     return line
+
 
 def removeStrings(line):
     # Removes the strings in a single-line line. Multiline strings dealt with in other function
@@ -19,11 +22,12 @@ def removeStrings(line):
 
     # removes a mulitiline string that's on a single line like this """ string """
     multiStringMatcher = r"('''.*?(?<!\\)(''|\\$))|(\"\"\".*?(\"\"\"|\\$))"
-    mutliStringMatcher = re.compile(multiStringMatcher, re.MULTILINE)
+    multiStringMatcher = re.compile(multiStringMatcher, re.MULTILINE)
     strippedLine = re.sub(multiStringMatcher, '', strippedLine)
-    
+
     return strippedLine
-    
+
+
 def removeMultilineString(line):
     commentStart = None
     commentEnd = None
@@ -36,7 +40,7 @@ def removeMultilineString(line):
             quoteChar = "'''"
         elif ('"""' in line):
             commentStart = line.find('"""')
-            quoteChar = '"""' 
+            quoteChar = '"""'
         if commentStart is not None:
             stringsLeft = True
             commentEnd = line[commentStart+1:].find(quoteChar)
@@ -47,9 +51,11 @@ def removeMultilineString(line):
                 line = line[:commentStart]
     return line
 
+
 def findRealCharacter(line, char):
     line = removeStrings(line)
     return line.find(char)
+
 
 def countRealCharacter(line, char):
     line = removeStrings(line)

@@ -10,7 +10,7 @@ class CodeClass(CodeBlock):
         self.name = name
         self.parents = classParents
         self.functions = []
-        self.memberVariables = [] # Variables which are available to entire class
+        self.memberVariables = []  # Variables which are available to entire class
 
     def addChildBlock(self, block):
         if isinstance(block, CodeFunction):
@@ -21,12 +21,15 @@ class CodeClass(CodeBlock):
     def addLine(self, line):
         self.lines.append(line)
         var_names = [var.name for var in self.variables]
-        for var in line.extractVariables(): # Add variables as lines are added
-            if (var not in var_names and
-                (not self.parentBlock or var not in self.parentBlock.variables.keys())):
-                self.variables.append(Variable(var, line.lineNumber))
+        for var in line.extractVariables():  # Add variables as lines are added
+            if var in var_names:
+                break
+            if self.parentBlock:
+                parent_var_names = [var_name.name for var_name in self.parentBlock.variables]
+                if var not in parent_var_names:
+                    self.variables.append(Variable(var, line.lineNumber))
             if 'self.' in var:
-                self.memberVariables.append(var)
+                self.memberVariables.append(Variable(var, line.lineNumber))
 
     def addFunction(self, function):
         self.functions.append(function)

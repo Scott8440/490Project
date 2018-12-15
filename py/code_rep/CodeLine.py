@@ -9,20 +9,20 @@ class CodeLine:
         self.line = line
         self.lineNumber = lineNumber
         self.indentation = indentation
-        self.lineType = lineType 
+        self.lineType = lineType
 
     def printLine(self):
         print("('{}',{},{},{})".format(self.line.strip(), self.lineNumber, self.indentation, self.lineType))
 
     def extractVariables(self):
-        # A rudimentary method of parsing out variable names in this line. 
+        # A rudimentary method of parsing out variable names in this line.
         # Relies on the variable being in the form: "variable = value"
         # This is not required in python but it's a decent way of getting
         # most of the variable names out of a line
         variables = []
         if self.lineType == LineTypes.REGULAR:
             newLine = self.removeStrings()
-        elif (self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING 
+        elif (self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING
               or self.lineType == LineTypes.STARTS_DOUBLE_MULTILINE_STRING
               or self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING
               or self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING):
@@ -44,7 +44,7 @@ class CodeLine:
     def stripLine(self):
         noStrings = self.removeStrings()
         noComment = LineHelpers.removeComment(noStrings)
-        return noComment 
+        return noComment
 
     def removeStrings(self):
         if self.lineType == LineTypes.CONTINUES_MULTILINE_STRING:
@@ -53,14 +53,13 @@ class CodeLine:
         return self.removeMultilineString(strippedLine)
 
     def removeMultilineString(self, text=None):
-        if text == None:
+        if text is None:
             text = self.line
         if self.lineType == LineTypes.STARTS_DOUBLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=True, token='"""')
         elif self.lineType == LineTypes.STARTS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=True, token="'''")
         elif self.lineType == LineTypes.ENDS_DOUBLE_MULTILINE_STRING:
-            removed = self.removeMultilineHelper(text, start=False, token='"""')
             return self.removeMultilineHelper(text, start=False, token='"""')
         elif self.lineType == LineTypes.ENDS_SINGLE_MULTILINE_STRING:
             return self.removeMultilineHelper(text, start=False, token="'''")

@@ -5,7 +5,7 @@ from py.code_rep.CodeClass import CodeClass
 class CodeFile:
 
     def __init__(self, filename=''):
-        self.filename = filename 
+        self.filename = filename
         self.functions = []
         self.classes = []
         self.blocks = []
