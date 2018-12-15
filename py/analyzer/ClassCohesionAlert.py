@@ -17,7 +17,7 @@ class ClassCohesionAlert(CodeAlert):
         description += "{} of the functions in this class do not access or modify a member variable.\n".format(len(self.noAccessFunctions))
         description += "these functions are: "
         for func in self.noAccessFunctions:
-            description += "{}, ".format(func) 
+            description += "{}, ".format(func)
         description = description[:-2]
         return description
 

@@ -1,6 +1,5 @@
 from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.MagicNumberAlert import MagicNumberAlert
-from py.analyzer.CodeAnalyzer import CodeAnalyzer
 import py.analyzer.AnalysisUtilities as utils
 
 

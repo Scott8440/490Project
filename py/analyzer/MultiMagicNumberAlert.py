@@ -6,7 +6,7 @@ class MultiMagicNumberAlert(CodeAlert):
     def __init__(self, magicNumberAlerts):
         CodeAlert.__init__(self)
         self.setAlertType("Magic Numbers")
-        self.number = magicNumberAlerts[0].number 
+        self.number = magicNumberAlerts[0].number
         self.setLineNumber(magicNumberAlerts[0].lineNumber)
         self.lineNumberList = []
         self.getLineNumberList(magicNumberAlerts)
@@ -27,6 +27,6 @@ class MultiMagicNumberAlert(CodeAlert):
 
     def writeFixText(self):
         fixText = ("You should consider setting this number to be "
-                          "a named constant and replacing all occurences of "
-                          "the number with this constant.")
+                   "a named constant and replacing all occurences of "
+                   "the number with this constant.")
         return fixText

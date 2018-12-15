@@ -17,6 +17,6 @@ class MagicNumberAlert(CodeAlert):
 
     def writeFixText(self):
         fixText = ("You should consider setting this number to be "
-                          "a named constant and replacing all occurences of "
-                          "the number with this constant.")
+                   "a named constant and replacing all occurences of "
+                   "the number with this constant.")
         return fixText

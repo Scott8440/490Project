@@ -1,5 +1,6 @@
 from py.analyzer.AnalysisParameters import AnalysisParameters
 
+
 class CodeAnalyzer:
 
     def __init__(self, parameters=None):

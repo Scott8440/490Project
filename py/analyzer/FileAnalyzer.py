@@ -6,6 +6,7 @@ from py.analyzer.LineAnalyzer import LineAnalyzer
 from py.analyzer.MagicNumberAlert import MagicNumberAlert
 from py.analyzer.MultiMagicNumberAlert import MultiMagicNumberAlert
 
+
 class FileAnalyzer(CodeAnalyzer):
 
     def __init__(self, codeFile, parameters=None):

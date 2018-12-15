@@ -1,13 +1,11 @@
 from py.analyzer.CodeAnalyzer import CodeAnalyzer
 from py.analyzer.LineAnalyzer import LineAnalyzer
-from py.analyzer.MagicNumberAlert import MagicNumberAlert
 from py.analyzer.VariableNameLengthAlert import VariableNameLengthAlert
 from py.analyzer.ConditionComplexityAlert import ConditionComplexityAlert
-import py.analyzer.AnalysisUtilities as utils
 
 
 class BlockAnalyzer(CodeAnalyzer):
-    
+
     def __init__(self, block, parameters=None):
         CodeAnalyzer.__init__(self, parameters=parameters)
         self.block = block
@@ -39,5 +37,3 @@ class BlockAnalyzer(CodeAnalyzer):
         for variable in self.block.variables.keys():
             if len(variable)/blockScope < self.params.variableScopeLengthRatio:
                 self.addAlert(VariableNameLengthAlert(variable, blockScope, self.block.variables[variable]))
-
-
