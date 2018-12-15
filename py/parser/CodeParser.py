@@ -2,9 +2,11 @@
 class Error(Exception):
     pass
 
+
 class FileTypeError(Error):
     def __init__(self):
-       self.message = "Trying to parse a file of the wrong type" 
+        self.message = "Trying to parse a file of the wrong type"
+
 
 class CodeParser:
 

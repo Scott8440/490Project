@@ -1,5 +1,5 @@
-from py.parser.PythonParser import PythonParser 
-from py.parser.CodeParser import FileTypeError 
+from py.parser.PythonParser import PythonParser
+from py.parser.CodeParser import FileTypeError
 
 
 class CodeFactory:
@@ -9,7 +9,8 @@ class CodeFactory:
 
         if filetype == 'py':
             return PythonParser(filename)
-        # NOTE: This is how the factory can be expanded once more language parsers are implemented
+        # NOTE: This is how the factory can be expanded once more language
+        # parsers are implemented
         # elif filetypye == 'js':
         #     return JavascriptParser(filename)
         else:
