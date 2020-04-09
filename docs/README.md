@@ -116,7 +116,7 @@ multiple conditional checks or negations. For example:
 
 should probably be encapsulated as
 
-        if (shouldBeDelted(timer)) {
+        if (shouldBeDeleted(timer)) {
 
 In addition to this, a conditional check that includes only a negation
 is much less obvious than one which does not include a negation. I will
